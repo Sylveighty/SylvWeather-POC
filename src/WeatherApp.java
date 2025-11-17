@@ -27,7 +27,8 @@ public class WeatherApp {
     }
     
     private static String getWeatherData(String city) throws Exception {
-        String urlString = API_URL + "?q=" + city + "&appid=" + API_KEY + "&units=metric";
+        String encodedCity = java.net.URLEncoder.encode(city, "UTF-8");
+        String urlString = API_URL + "?q=" + encodedCity + "&appid=" + API_KEY + "&units=metric";
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
