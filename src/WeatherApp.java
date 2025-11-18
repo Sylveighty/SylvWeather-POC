@@ -5,7 +5,6 @@ import java.net.URL;
 import java.util.Scanner;
 
 public class WeatherApp {
-    // Replace with your actual API key
     private static final String API_KEY = "f55978d8ae2181360e45c253d1e13d60";
     private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather";
 
@@ -51,7 +50,6 @@ public class WeatherApp {
     }
     
     private static void displayWeather(String jsonData, String city) {
-        // Simple JSON parsing (without external libraries)
         String temp = extractValue(jsonData, "\"temp\":");
         String feelsLike = extractValue(jsonData, "\"feels_like\":");
         String humidity = extractValue(jsonData, "\"humidity\":");
@@ -78,7 +76,6 @@ public class WeatherApp {
             int endIndex = json.indexOf(",", startIndex);
             if (endIndex == -1) endIndex = json.indexOf("}", startIndex);
             String value = json.substring(startIndex, endIndex).trim();
-            // Remove quotes if present
             return value.replace("\"", "");
         }
     }
