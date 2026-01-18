@@ -99,7 +99,7 @@ public class CurrentWeatherPanel extends VBox {
         searchField = new TextField();
         searchField.setPromptText("Enter city name...");
         searchField.setPrefWidth(280);
-        searchField.setStyle("-fx-font-size: 14px;");
+        searchField.setStyle("-fx-font-size: 14px; -fx-text-fill: #333; -fx-control-inner-background: white; -fx-border-color: #ccc; -fx-border-radius: 4; -fx-padding: 8;");
         
         // Search button
         searchButton = new Button("Search");
@@ -129,7 +129,7 @@ public class CurrentWeatherPanel extends VBox {
         
         // Weather icon (using emoji/unicode)
         weatherIcon = new Text("☀");
-        weatherIcon.setStyle("-fx-font-size: 80px;");
+        weatherIcon.setStyle("-fx-font-size: 80px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
         
         // Temperature (large display)
         temperatureLabel = new Label("--°");
@@ -330,15 +330,15 @@ public class CurrentWeatherPanel extends VBox {
      */
     private String getWeatherEmoji(String condition) {
         switch (condition.toLowerCase()) {
-            case "clear": return "☀️";
-            case "clouds": return "☁️";
-            case "rain": return "🌧️";
-            case "drizzle": return "🌦️";
-            case "thunderstorm": return "⛈️";
-            case "snow": return "❄️";
+            case "clear": return "☀";
+            case "clouds": return "☁";
+            case "rain": return "⛈";
+            case "drizzle": return "☔";
+            case "thunderstorm": return "⚡";
+            case "snow": return "❄";
             case "mist":
-            case "fog": return "🌫️";
-            default: return "🌤️";
+            case "fog": return "≈";
+            default: return "◐";
         }
     }
     

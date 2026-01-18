@@ -1,6 +1,7 @@
 package com.school.weatherapp.app;
 
 import com.school.weatherapp.config.AppConfig;
+import com.school.weatherapp.ui.panels.AlertPanel;
 import com.school.weatherapp.ui.panels.CurrentWeatherPanel;
 import com.school.weatherapp.ui.panels.DailyForecastPanel;
 import com.school.weatherapp.ui.panels.HourlyForecastPanel;
@@ -34,6 +35,7 @@ public class MainApp extends Application {
     private CurrentWeatherPanel currentWeatherPanel;
     private HourlyForecastPanel hourlyForecastPanel;
     private DailyForecastPanel dailyForecastPanel;
+    private AlertPanel alertPanel;
     
     /**
      * JavaFX start method - called when application launches
@@ -50,6 +52,7 @@ public class MainApp extends Application {
         currentWeatherPanel = new CurrentWeatherPanel();
         hourlyForecastPanel = new HourlyForecastPanel();
         dailyForecastPanel = new DailyForecastPanel();
+        alertPanel = new AlertPanel();
         
         // Create layout
         VBox mainLayout = new VBox(20);
@@ -61,6 +64,9 @@ public class MainApp extends Application {
         topSection.setAlignment(Pos.TOP_CENTER);
         topSection.getChildren().add(currentWeatherPanel);
         
+        // Middle section: Alert panel
+        alertPanel.setMaxWidth(1200);
+        
         // Middle section: Hourly forecast
         hourlyForecastPanel.setMaxWidth(1200);
         
@@ -68,7 +74,12 @@ public class MainApp extends Application {
         dailyForecastPanel.setMaxWidth(1200);
         
         // Add all sections to main layout
-        mainLayout.getChildren().addAll(topSection, hourlyForecastPanel, dailyForecastPanel);
+        mainLayout.getChildren().addAll(
+            topSection, 
+            alertPanel,
+            hourlyForecastPanel, 
+            dailyForecastPanel
+        );
         
         // Wrap in scroll pane for smaller screens
         ScrollPane scrollPane = new ScrollPane(mainLayout);
@@ -79,6 +90,10 @@ public class MainApp extends Application {
         
         // Create scene
         Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
+        
+        // Load theme CSS
+        String themeCSS = getClass().getResource("/theme.css").toExternalForm();
+        scene.getStylesheets().add(themeCSS);
         
         // Configure primary stage
         primaryStage.setTitle(APP_TITLE);
@@ -117,6 +132,7 @@ public class MainApp extends Application {
     private void loadForecasts(String cityName) {
         hourlyForecastPanel.loadHourlyForecast(cityName);
         dailyForecastPanel.loadDailyForecast(cityName);
+        alertPanel.loadAlerts(cityName);
     }
     
     /**

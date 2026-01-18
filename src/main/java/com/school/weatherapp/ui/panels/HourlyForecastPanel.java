@@ -152,7 +152,7 @@ public class HourlyForecastPanel extends VBox {
         
         // Weather icon
         Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
-        icon.setStyle("-fx-font-size: 32px;");
+        icon.setStyle("-fx-font-size: 32px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
         
         // Temperature
         String tempUnit = AppConfig.TEMPERATURE_UNIT.equals("imperial") ? "°F" : "°C";
@@ -169,6 +169,24 @@ public class HourlyForecastPanel extends VBox {
         } else {
             card.getChildren().addAll(timeLabel, icon, tempLabel);
         }
+        
+        // Add hover effect
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color: #f0f0f0; " +
+                         "-fx-background-radius: 8; " +
+                         "-fx-border-color: #d0d0d0; " +
+                         "-fx-border-radius: 8; " +
+                         "-fx-border-width: 1; " +
+                         "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);");
+        });
+        
+        card.setOnMouseExited(e -> {
+            card.setStyle("-fx-background-color: #fafafa; " +
+                         "-fx-background-radius: 8; " +
+                         "-fx-border-color: #e0e0e0; " +
+                         "-fx-border-radius: 8; " +
+                         "-fx-border-width: 1;");
+        });
         
         return card;
     }
@@ -187,15 +205,15 @@ public class HourlyForecastPanel extends VBox {
      */
     private String getWeatherEmoji(String condition) {
         switch (condition.toLowerCase()) {
-            case "clear": return "☀️";
-            case "clouds": return "☁️";
-            case "rain": return "🌧️";
-            case "drizzle": return "🌦️";
-            case "thunderstorm": return "⛈️";
-            case "snow": return "❄️";
+            case "clear": return "☀";
+            case "clouds": return "☁";
+            case "rain": return "⛈";
+            case "drizzle": return "☔";
+            case "thunderstorm": return "⚡";
+            case "snow": return "❄";
             case "mist":
-            case "fog": return "🌫️";
-            default: return "🌤️";
+            case "fog": return "≈";
+            default: return "◐";
         }
     }
 }
