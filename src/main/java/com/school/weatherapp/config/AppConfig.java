@@ -26,7 +26,7 @@ public class AppConfig {
     
     /**
      * API Key for OpenWeatherMap
-     * TODO: Replace with your actual API key from https://openweathermap.org/api
+     * DONE: Replace with your actual API key from https://openweathermap.org/api
      */
     public static final String WEATHER_API_KEY = "f55978d8ae2181360e45c253d1e13d60";
     

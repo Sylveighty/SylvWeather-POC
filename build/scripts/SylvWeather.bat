@@ -70,7 +70,7 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\SylvWeather-1.0-SNAPSHOT.jar;%APP_HOME%\lib\gson-2.10.1.jar;%APP_HOME%\lib\javafx-fxml-21-win.jar;%APP_HOME%\lib\javafx-controls-21-win.jar;%APP_HOME%\lib\javafx-graphics-21-win.jar;%APP_HOME%\lib\javafx-base-21-win.jar
+set CLASSPATH=%APP_HOME%\lib\SylvWeather-1.0-SNAPSHOT.jar;%APP_HOME%\lib\gson-2.10.1.jar;%APP_HOME%\lib\javafx-controls-21-win.jar;%APP_HOME%\lib\javafx-graphics-21-win.jar;%APP_HOME%\lib\javafx-graphics-21.jar;%APP_HOME%\lib\javafx-base-21-win.jar;%APP_HOME%\lib\javafx-base-21.jar
 
 
 @rem Execute SylvWeather

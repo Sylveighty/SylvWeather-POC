@@ -15,6 +15,7 @@ import javafx.scene.text.Text;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.function.Consumer;
 
 /**
  * CurrentWeatherPanel - UI panel displaying current weather conditions
@@ -28,7 +29,7 @@ import java.time.format.DateTimeFormatter;
  * - Last updated timestamp
  * 
  * @author Weather App Team
- * @version 1.0 (Phase 1)
+ * @version 1.1 (Phase 2)
  */
 public class CurrentWeatherPanel extends VBox {
     
@@ -53,6 +54,9 @@ public class CurrentWeatherPanel extends VBox {
     // Current weather data
     private Weather currentWeather;
     
+    // Callback for when city changes
+    private Consumer<String> onCityChangeCallback;
+    
     /**
      * Constructor - builds the UI panel
      */
@@ -73,6 +77,15 @@ public class CurrentWeatherPanel extends VBox {
         
         // Load default city weather
         loadWeather(AppConfig.DEFAULT_CITY);
+    }
+    
+    /**
+     * Set callback to be notified when city changes
+     * 
+     * @param callback Function to call with new city name
+     */
+    public void setOnCityChange(Consumer<String> callback) {
+        this.onCityChangeCallback = callback;
     }
     
     /**
@@ -229,6 +242,10 @@ public class CurrentWeatherPanel extends VBox {
         if (!city.isEmpty()) {
             loadWeather(city);
             searchField.clear();
+            
+            // Trigger event to update other panels (forecasts)
+            // This allows MainApp to listen and update forecasts
+            this.fireEvent(new javafx.event.ActionEvent());
         }
     }
     
@@ -290,6 +307,11 @@ public class CurrentWeatherPanel extends VBox {
         // Update timestamp
         String timestamp = formatTimestamp(weather.getTimestamp());
         lastUpdatedLabel.setText("Last updated: " + timestamp);
+        
+        // Notify listeners that city changed
+        if (onCityChangeCallback != null) {
+            onCityChangeCallback.accept(weather.getCityName());
+        }
     }
     
     /**
