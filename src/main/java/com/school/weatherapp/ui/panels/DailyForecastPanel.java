@@ -44,11 +44,19 @@ public class DailyForecastPanel extends VBox {
         // Panel styling
         this.setPadding(new Insets(20));
         this.setSpacing(15);
-        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        this.applyLightTheme();
         
         // Build UI
         buildTitle();
         buildForecastContainer();
+    }
+    
+    public void applyLightTheme() {
+        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+    }
+    
+    public void applyDarkTheme() {
+        this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
     }
     
     /**

@@ -1,9 +1,8 @@
-/* Weather App Light Theme - theme.css */
-
 /* Root styling */
 .root {
     -fx-font-family: "System";
     -fx-font-size: 12;
+    -fx-background-color: #e8eaf6;
 }
 
 /* Main container */

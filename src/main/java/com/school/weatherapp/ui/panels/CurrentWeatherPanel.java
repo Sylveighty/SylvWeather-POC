@@ -66,7 +66,7 @@ public class CurrentWeatherPanel extends VBox {
         // Panel styling
         this.setPadding(new Insets(20));
         this.setSpacing(15);
-        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        this.applyLightTheme();
         this.setMaxWidth(450);
         
         // Build UI
@@ -77,6 +77,20 @@ public class CurrentWeatherPanel extends VBox {
         
         // Load default city weather
         loadWeather(AppConfig.DEFAULT_CITY);
+    }
+    
+    /**
+     * Apply light theme colors
+     */
+    public void applyLightTheme() {
+        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+    }
+    
+    /**
+     * Apply dark theme colors
+     */
+    public void applyDarkTheme() {
+        this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
     }
     
     /**

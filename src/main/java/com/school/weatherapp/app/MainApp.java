@@ -9,6 +9,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -36,6 +37,10 @@ public class MainApp extends Application {
     private HourlyForecastPanel hourlyForecastPanel;
     private DailyForecastPanel dailyForecastPanel;
     private AlertPanel alertPanel;
+    private Scene scene;
+    private BorderPane root;
+    private ScrollPane scrollPane;
+    private boolean darkThemeEnabled = false;
     
     /**
      * JavaFX start method - called when application launches
@@ -45,10 +50,25 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Create root layout
-        BorderPane root = new BorderPane();
+        root = new BorderPane();
         root.setStyle("-fx-background-color: #e8eaf6;");
         
-        // Create panels
+        // Top bar with theme toggle
+        HBox topBar = new HBox();
+        topBar.setAlignment(Pos.TOP_RIGHT);
+        topBar.setPadding(new Insets(10, 20, 0, 0));
+        
+        Button themeToggle = new Button("Dark");
+        themeToggle.setStyle("-fx-font-size: 12; -fx-padding: 8 12 8 12;");
+        themeToggle.setOnAction(e -> {
+            toggleTheme();
+            themeToggle.setText(darkThemeEnabled ? "Light" : "Dark");
+        });
+        
+        topBar.getChildren().add(themeToggle);
+        root.setTop(topBar);
+        
+        // Main content
         currentWeatherPanel = new CurrentWeatherPanel();
         hourlyForecastPanel = new HourlyForecastPanel();
         dailyForecastPanel = new DailyForecastPanel();
@@ -82,14 +102,14 @@ public class MainApp extends Application {
         );
         
         // Wrap in scroll pane for smaller screens
-        ScrollPane scrollPane = new ScrollPane(mainLayout);
+        scrollPane = new ScrollPane(mainLayout);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #e8eaf6;");
         
         root.setCenter(scrollPane);
         
         // Create scene
-        Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
+        scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
         
         // Load theme CSS
         String themeCSS = getClass().getResource("/theme.css").toExternalForm();
@@ -122,6 +142,45 @@ public class MainApp extends Application {
         currentWeatherPanel.setOnCityChange(cityName -> {
             loadForecasts(cityName);
         });
+    }
+    
+    /**
+     * Load forecast data for a city
+     * 
+     * @param cityName Name of the city
+     
+    
+    /**
+     * Toggle between light and dark theme
+     */
+    private void toggleTheme() {
+        darkThemeEnabled = !darkThemeEnabled;
+        
+        String themeCSS = darkThemeEnabled ? 
+            getClass().getResource("/theme-dark.css").toExternalForm() :
+            getClass().getResource("/theme.css").toExternalForm();
+        
+        scene.getStylesheets().clear();
+        scene.getStylesheets().add(themeCSS);
+        
+        // Update background colors
+        if (darkThemeEnabled) {
+            root.setStyle("-fx-background-color: #1a1a1a;");
+            scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #1a1a1a;");
+            currentWeatherPanel.applyDarkTheme();
+            hourlyForecastPanel.applyDarkTheme();
+            dailyForecastPanel.applyDarkTheme();
+            alertPanel.applyDarkTheme();
+        } else {
+            root.setStyle("-fx-background-color: #e8eaf6;");
+            scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #e8eaf6;");
+            currentWeatherPanel.applyLightTheme();
+            hourlyForecastPanel.applyLightTheme();
+            dailyForecastPanel.applyLightTheme();
+            alertPanel.applyLightTheme();
+        }
+        
+        System.out.println("Theme: " + (darkThemeEnabled ? "Dark" : "Light"));
     }
     
     /**

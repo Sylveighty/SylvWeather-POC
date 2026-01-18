@@ -33,12 +33,20 @@ public class AlertPanel extends VBox {
         
         this.setPadding(new Insets(20));
         this.setSpacing(15);
-        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        this.applyLightTheme();
         this.setMaxWidth(1200);
         
         buildTitle();
         buildAlertsContainer();
         showNoAlerts();
+    }
+    
+    public void applyLightTheme() {
+        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+    }
+    
+    public void applyDarkTheme() {
+        this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
     }
     
     private void buildTitle() {
