@@ -67,6 +67,11 @@ public class AppConfig {
      * Temperature unit preference (metric or imperial)
      */
     public static final String TEMPERATURE_UNIT = "imperial"; // Fahrenheit
+
+    /**
+     * Path to favorites file for storing favorite cities
+     */
+    public static final String FAVORITES_FILE_PATH = "favorites.txt";
     
     
     // ============ Feature Toggles ============

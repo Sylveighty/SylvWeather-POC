@@ -4,6 +4,7 @@ import com.school.weatherapp.config.AppConfig;
 import com.school.weatherapp.ui.panels.AlertPanel;
 import com.school.weatherapp.ui.panels.CurrentWeatherPanel;
 import com.school.weatherapp.ui.panels.DailyForecastPanel;
+import com.school.weatherapp.ui.panels.FavoritesPanel;
 import com.school.weatherapp.ui.panels.HourlyForecastPanel;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -34,6 +35,7 @@ public class MainApp extends Application {
     
     // UI Components
     private CurrentWeatherPanel currentWeatherPanel;
+    private FavoritesPanel favoritesPanel;
     private HourlyForecastPanel hourlyForecastPanel;
     private DailyForecastPanel dailyForecastPanel;
     private AlertPanel alertPanel;
@@ -70,6 +72,7 @@ public class MainApp extends Application {
         
         // Main content
         currentWeatherPanel = new CurrentWeatherPanel();
+        favoritesPanel = new FavoritesPanel();
         hourlyForecastPanel = new HourlyForecastPanel();
         dailyForecastPanel = new DailyForecastPanel();
         alertPanel = new AlertPanel();
@@ -79,10 +82,10 @@ public class MainApp extends Application {
         mainLayout.setPadding(new Insets(20));
         mainLayout.setAlignment(Pos.TOP_CENTER);
         
-        // Top section: Current weather (left)
+        // Top section: Current weather and favorites
         HBox topSection = new HBox(20);
         topSection.setAlignment(Pos.TOP_CENTER);
-        topSection.getChildren().add(currentWeatherPanel);
+        topSection.getChildren().addAll(currentWeatherPanel, favoritesPanel);
         
         // Middle section: Alert panel
         alertPanel.setMaxWidth(1200);
@@ -142,6 +145,13 @@ public class MainApp extends Application {
         currentWeatherPanel.setOnCityChange(cityName -> {
             loadForecasts(cityName);
         });
+
+        // Listen for city selection from favorites panel
+        favoritesPanel.setOnCitySelect(cityName -> {
+            // Load weather for selected favorite city
+            currentWeatherPanel.loadCityWeather(cityName);
+            // This will trigger the city change callback which calls loadForecasts
+        });
     }
     
     /**
@@ -175,6 +185,7 @@ public class MainApp extends Application {
                 }
             }
             currentWeatherPanel.applyDarkTheme();
+            favoritesPanel.applyDarkTheme();
             hourlyForecastPanel.applyDarkTheme();
             dailyForecastPanel.applyDarkTheme();
             alertPanel.applyDarkTheme();
@@ -189,6 +200,7 @@ public class MainApp extends Application {
                 }
             }
             currentWeatherPanel.applyLightTheme();
+            favoritesPanel.applyLightTheme();
             hourlyForecastPanel.applyLightTheme();
             dailyForecastPanel.applyLightTheme();
             alertPanel.applyLightTheme();

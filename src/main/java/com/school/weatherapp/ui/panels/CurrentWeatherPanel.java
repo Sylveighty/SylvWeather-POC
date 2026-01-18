@@ -3,6 +3,7 @@ package com.school.weatherapp.ui.panels;
 import com.school.weatherapp.data.models.Weather;
 import com.school.weatherapp.data.services.WeatherService;
 import com.school.weatherapp.config.AppConfig;
+import com.school.weatherapp.features.FavoritesService;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -35,10 +36,12 @@ public class CurrentWeatherPanel extends VBox {
     
     // Services
     private final WeatherService weatherService;
+    private final FavoritesService favoritesService;
     
     // UI Components
     private TextField searchField;
     private Button searchButton;
+    private Button favoriteButton;
     private Label cityLabel;
     private Label temperatureLabel;
     private Label conditionLabel;
@@ -63,19 +66,20 @@ public class CurrentWeatherPanel extends VBox {
      */
     public CurrentWeatherPanel() {
         this.weatherService = new WeatherService();
-        
+        this.favoritesService = new FavoritesService();
+
         // Panel styling
         this.setPadding(new Insets(20));
         this.setSpacing(15);
         this.applyLightTheme();
         this.setMaxWidth(450);
-        
+
         // Build UI
         buildSearchBar();
         buildMainDisplay();
         buildDetailsGrid();
         buildFooter();
-        
+
         // Load default city weather
         loadWeather(AppConfig.DEFAULT_CITY);
     }
@@ -109,6 +113,17 @@ public class CurrentWeatherPanel extends VBox {
 
         // Update footer
         if (lastUpdatedLabel != null) lastUpdatedLabel.setStyle("-fx-text-fill: #999;");
+
+        // Update favorite button for light theme
+        if (favoriteButton != null && currentWeather != null) {
+            if (favoritesService.isFavorite(currentWeather.getCityName())) {
+                favoriteButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            } else {
+                favoriteButton.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            }
+        }
     }
 
     /**
@@ -140,6 +155,17 @@ public class CurrentWeatherPanel extends VBox {
 
         // Update footer
         if (lastUpdatedLabel != null) lastUpdatedLabel.setStyle("-fx-text-fill: #b0b0b0;");
+
+        // Update favorite button for dark theme (same colors as light theme for visibility)
+        if (favoriteButton != null && currentWeather != null) {
+            if (favoritesService.isFavorite(currentWeather.getCityName())) {
+                favoriteButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            } else {
+                favoriteButton.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            }
+        }
     }
 
     /**
@@ -178,23 +204,29 @@ public class CurrentWeatherPanel extends VBox {
     private void buildSearchBar() {
         HBox searchBar = new HBox(10);
         searchBar.setAlignment(Pos.CENTER);
-        
+
         // Search field
         searchField = new TextField();
         searchField.setPromptText("Enter city name...");
-        searchField.setPrefWidth(280);
+        searchField.setPrefWidth(250);
         searchField.setStyle("-fx-font-size: 14px; -fx-text-fill: #333; -fx-control-inner-background: white; -fx-border-color: #ccc; -fx-border-radius: 4; -fx-padding: 8;");
-        
+
         // Search button
         searchButton = new Button("Search");
         searchButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; " +
                              "-fx-font-weight: bold; -fx-cursor: hand;");
-        
+
+        // Favorite button
+        favoriteButton = new Button("☆ Add to Favorites");
+        favoriteButton.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white; " +
+                               "-fx-font-weight: bold; -fx-cursor: hand;");
+        favoriteButton.setOnAction(e -> handleFavoriteToggle());
+
         // Handle search on button click or Enter key
         searchButton.setOnAction(e -> handleSearch());
         searchField.setOnAction(e -> handleSearch());
-        
-        searchBar.getChildren().addAll(searchField, searchButton);
+
+        searchBar.getChildren().addAll(searchField, searchButton, favoriteButton);
         this.getChildren().add(searchBar);
     }
     
@@ -326,10 +358,47 @@ public class CurrentWeatherPanel extends VBox {
         if (!city.isEmpty()) {
             loadWeather(city);
             searchField.clear();
-            
+
             // Trigger event to update other panels (forecasts)
             // This allows MainApp to listen and update forecasts
             this.fireEvent(new javafx.event.ActionEvent());
+        }
+    }
+
+    /**
+     * Handle favorite button toggle
+     */
+    private void handleFavoriteToggle() {
+        if (currentWeather != null) {
+            String cityName = currentWeather.getCityName();
+            if (favoritesService.isFavorite(cityName)) {
+                favoritesService.removeFavorite(cityName);
+                favoriteButton.setText("☆ Add to Favorites");
+                favoriteButton.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            } else {
+                favoritesService.addFavorite(cityName);
+                favoriteButton.setText("★ Remove from Favorites");
+                favoriteButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            }
+        }
+    }
+
+    /**
+     * Update favorite button state based on current city
+     */
+    private void updateFavoriteButtonState(String cityName) {
+        if (favoriteButton != null && cityName != null) {
+            if (favoritesService.isFavorite(cityName)) {
+                favoriteButton.setText("★ Remove from Favorites");
+                favoriteButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            } else {
+                favoriteButton.setText("☆ Add to Favorites");
+                favoriteButton.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white; " +
+                                       "-fx-font-weight: bold; -fx-cursor: hand;");
+            }
         }
     }
     
@@ -391,7 +460,10 @@ public class CurrentWeatherPanel extends VBox {
         // Update timestamp
         String timestamp = formatTimestamp(weather.getTimestamp());
         lastUpdatedLabel.setText("Last updated: " + timestamp);
-        
+
+        // Update favorite button state
+        updateFavoriteButtonState(weather.getCityName());
+
         // Notify listeners that city changed
         if (onCityChangeCallback != null) {
             onCityChangeCallback.accept(weather.getCityName());
@@ -466,5 +538,14 @@ public class CurrentWeatherPanel extends VBox {
         if (currentWeather != null) {
             loadWeather(currentWeather.getCityName());
         }
+    }
+
+    /**
+     * Load weather for a specific city (public method for external calls)
+     *
+     * @param cityName Name of the city to load
+     */
+    public void loadCityWeather(String cityName) {
+        loadWeather(cityName);
     }
 }
