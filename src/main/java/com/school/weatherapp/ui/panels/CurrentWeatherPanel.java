@@ -61,6 +61,9 @@ public class CurrentWeatherPanel extends VBox {
     // Callback for when city changes
     private Consumer<String> onCityChangeCallback;
     
+    // Callback for when favorites change
+    private Runnable onFavoritesChangeCallback;
+    
     /**
      * Constructor - builds the UI panel
      */
@@ -199,6 +202,15 @@ public class CurrentWeatherPanel extends VBox {
     }
     
     /**
+     * Set callback to be notified when favorites change
+     * 
+     * @param callback Runnable to call when favorites are added/removed
+     */
+    public void setOnFavoritesChange(Runnable callback) {
+        this.onFavoritesChangeCallback = callback;
+    }
+    
+    /**
      * Build search bar with text field and button
      */
     private void buildSearchBar() {
@@ -322,8 +334,8 @@ public class CurrentWeatherPanel extends VBox {
      */
     private void buildFooter() {
         lastUpdatedLabel = new Label("Last updated: --");
-        lastUpdatedLabel.setFont(Font.font("System", 12));
-        lastUpdatedLabel.setStyle("-fx-text-fill: #999;");
+        lastUpdatedLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+        lastUpdatedLabel.setStyle("-fx-text-fill: #666; -fx-font-weight: bold;");
         lastUpdatedLabel.setAlignment(Pos.CENTER);
         lastUpdatedLabel.setMaxWidth(Double.MAX_VALUE);
         
@@ -381,6 +393,11 @@ public class CurrentWeatherPanel extends VBox {
                 favoriteButton.setText("★ Remove from Favorites");
                 favoriteButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; " +
                                        "-fx-font-weight: bold; -fx-cursor: hand;");
+            }
+            
+            // Notify listeners that favorites changed
+            if (onFavoritesChangeCallback != null) {
+                onFavoritesChangeCallback.run();
             }
         }
     }

@@ -146,6 +146,12 @@ public class MainApp extends Application {
             loadForecasts(cityName);
         });
 
+        // Listen for favorites changes from current weather panel
+        currentWeatherPanel.setOnFavoritesChange(() -> {
+            // Refresh favorites panel to show updated list
+            favoritesPanel.refreshFavorites();
+        });
+
         // Listen for city selection from favorites panel
         favoritesPanel.setOnCitySelect(cityName -> {
             // Load weather for selected favorite city
