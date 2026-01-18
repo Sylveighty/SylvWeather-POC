@@ -43,10 +43,89 @@ public class AlertPanel extends VBox {
     
     public void applyLightTheme() {
         this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+        // Update title
+        if (titleLabel != null) titleLabel.setStyle("-fx-text-fill: #d32f2f;");
+
+        // Update alerts container background
+        if (alertsContainer != null) {
+            alertsContainer.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20;");
+        }
+
+        // Update all alert cards
+        updateAlertCardsTheme(true);
+
+        // Update scroll pane
+        if (alertsScrollPane != null) {
+            alertsScrollPane.setStyle("-fx-control-inner-background: white;");
+        }
     }
-    
+
     public void applyDarkTheme() {
         this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
+
+        // Update title
+        if (titleLabel != null) titleLabel.setStyle("-fx-text-fill: #ff6b6b;");
+
+        // Update alerts container background
+        if (alertsContainer != null) {
+            alertsContainer.setStyle("-fx-background-color: #333333; -fx-background-radius: 8; -fx-padding: 20;");
+        }
+
+        // Update all alert cards
+        updateAlertCardsTheme(false);
+
+        // Update scroll pane
+        if (alertsScrollPane != null) {
+            alertsScrollPane.setStyle("-fx-control-inner-background: #333333;");
+        }
+    }
+
+    /**
+     * Helper method to update alert cards theme
+     */
+    private void updateAlertCardsTheme(boolean isLight) {
+        String bgColor, borderColor, textColor;
+
+        if (isLight) {
+            bgColor = "white";
+            borderColor = "#ccc";
+            textColor = "#333";
+        } else {
+            bgColor = "#3a3a3a";
+            borderColor = "#555555";
+            textColor = "#e0e0e0";
+        }
+
+        for (javafx.scene.Node node : alertsContainer.getChildren()) {
+            if (node instanceof VBox) {
+                VBox card = (VBox) node;
+                // Skip loading/placeholder boxes
+                if (card.getChildren().size() > 0 && card.getChildren().get(0) instanceof Label) {
+                    Label firstLabel = (Label) card.getChildren().get(0);
+                    if ("No active weather alerts".equals(firstLabel.getText()) ||
+                        firstLabel.getText().contains("Loading")) {
+                        firstLabel.setStyle("-fx-text-fill: " + (isLight ? "#999" : "#b0b0b0") + "; -fx-font-size: 14px;");
+                        continue;
+                    }
+                }
+
+                // Update card background
+                card.setStyle("-fx-background-color: " + bgColor + "; " +
+                             "-fx-background-radius: 6; " +
+                             "-fx-border-color: " + borderColor + "; " +
+                             "-fx-border-width: 1; " +
+                             "-fx-border-radius: 6;");
+
+                // Update text colors in all labels
+                for (javafx.scene.Node child : card.getChildren()) {
+                    if (child instanceof Label) {
+                        Label label = (Label) child;
+                        label.setStyle("-fx-text-fill: " + textColor + ";");
+                    }
+                }
+            }
+        }
     }
     
     private void buildTitle() {

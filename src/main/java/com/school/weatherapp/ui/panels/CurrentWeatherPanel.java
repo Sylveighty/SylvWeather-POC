@@ -50,6 +50,7 @@ public class CurrentWeatherPanel extends VBox {
     private Label pressureLabel;
     private Label lastUpdatedLabel;
     private ProgressIndicator loadingIndicator;
+    private GridPane detailsGrid;
     
     // Current weather data
     private Weather currentWeather;
@@ -84,13 +85,78 @@ public class CurrentWeatherPanel extends VBox {
      */
     public void applyLightTheme() {
         this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+        // Update search field
+        if (searchField != null) {
+            searchField.setStyle("-fx-font-size: 14px; -fx-text-fill: #333; -fx-control-inner-background: white; -fx-border-color: #ccc; -fx-border-radius: 4; -fx-padding: 8;");
+        }
+
+        // Update main labels
+        if (cityLabel != null) cityLabel.setStyle("-fx-text-fill: #333;");
+        if (temperatureLabel != null) temperatureLabel.setStyle("-fx-text-fill: #333;");
+        if (conditionLabel != null) conditionLabel.setStyle("-fx-text-fill: #666;");
+        if (descriptionLabel != null) descriptionLabel.setStyle("-fx-text-fill: #888;");
+
+        // Update details grid background
+        if (detailsGrid != null) {
+            detailsGrid.setStyle("-fx-background-color: white; -fx-background-radius: 8;");
+        }
+
+        // Update detail labels
+        updateDetailLabelsTextColor("#333", "#999");
+
+        // Update footer
+        if (lastUpdatedLabel != null) lastUpdatedLabel.setStyle("-fx-text-fill: #999;");
     }
-    
+
     /**
      * Apply dark theme colors
      */
     public void applyDarkTheme() {
         this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
+
+        // Update search field
+        if (searchField != null) {
+            searchField.setStyle("-fx-font-size: 14px; -fx-text-fill: #e0e0e0; -fx-control-inner-background: #3a3a3a; -fx-border-color: #555555; -fx-border-radius: 4; -fx-padding: 8;");
+        }
+
+        // Update main labels
+        if (cityLabel != null) cityLabel.setStyle("-fx-text-fill: #e0e0e0;");
+        if (temperatureLabel != null) temperatureLabel.setStyle("-fx-text-fill: #e0e0e0;");
+        if (conditionLabel != null) conditionLabel.setStyle("-fx-text-fill: #b0b0b0;");
+        if (descriptionLabel != null) descriptionLabel.setStyle("-fx-text-fill: #b0b0b0;");
+
+        // Update details grid background
+        if (detailsGrid != null) {
+            detailsGrid.setStyle("-fx-background-color: #333333; -fx-background-radius: 8;");
+        }
+
+        // Update detail labels
+        updateDetailLabelsTextColor("#e0e0e0", "#b0b0b0");
+
+        // Update footer
+        if (lastUpdatedLabel != null) lastUpdatedLabel.setStyle("-fx-text-fill: #b0b0b0;");
+    }
+
+    /**
+     * Helper method to update detail labels text colors
+     */
+    private void updateDetailLabelsTextColor(String primaryColor, String secondaryColor) {
+        if (feelsLikeLabel != null) feelsLikeLabel.setStyle("-fx-text-fill: " + primaryColor + ";");
+        if (humidityLabel != null) humidityLabel.setStyle("-fx-text-fill: " + primaryColor + ";");
+        if (windLabel != null) windLabel.setStyle("-fx-text-fill: " + primaryColor + ";");
+        if (pressureLabel != null) pressureLabel.setStyle("-fx-text-fill: " + primaryColor + ";");
+
+        // Update detail titles
+        for (javafx.scene.Node node : detailsGrid.getChildren()) {
+            if (node instanceof Label) {
+                Label label = (Label) node;
+                if (label.getText().equals("Feels Like") || label.getText().equals("Humidity") ||
+                    label.getText().equals("Wind Speed") || label.getText().equals("Pressure")) {
+                    label.setStyle("-fx-text-fill: " + secondaryColor + ";");
+                }
+            }
+        }
     }
     
     /**

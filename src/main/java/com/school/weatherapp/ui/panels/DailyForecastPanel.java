@@ -53,10 +53,75 @@ public class DailyForecastPanel extends VBox {
     
     public void applyLightTheme() {
         this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+        // Update title
+        if (titleLabel != null) titleLabel.setStyle("-fx-text-fill: #333;");
+
+        // Update forecast container background
+        if (forecastCardsContainer != null) {
+            forecastCardsContainer.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20;");
+        }
+
+        // Update all forecast cards
+        updateForecastCardsTheme("#333", "#fafafa", "#f0f0f0", "#e0e0e0");
     }
-    
+
     public void applyDarkTheme() {
         this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
+
+        // Update title
+        if (titleLabel != null) titleLabel.setStyle("-fx-text-fill: #e0e0e0;");
+
+        // Update forecast container background
+        if (forecastCardsContainer != null) {
+            forecastCardsContainer.setStyle("-fx-background-color: #333333; -fx-background-radius: 8; -fx-padding: 20;");
+        }
+
+        // Update all forecast cards
+        updateForecastCardsTheme("#e0e0e0", "#3a3a3a", "#444444", "#555555");
+    }
+
+    /**
+     * Helper method to update forecast cards theme
+     */
+    private void updateForecastCardsTheme(String textColor, String cardBg, String hoverBg, String borderColor) {
+        for (javafx.scene.Node node : forecastCardsContainer.getChildren()) {
+            if (node instanceof VBox) {
+                VBox card = (VBox) node;
+                // Update card background and border
+                card.setStyle("-fx-background-color: " + cardBg + "; " +
+                             "-fx-background-radius: 8; " +
+                             "-fx-border-color: " + borderColor + "; " +
+                             "-fx-border-radius: 8; " +
+                             "-fx-border-width: 1;");
+
+                // Update text colors in labels
+                for (javafx.scene.Node child : card.getChildren()) {
+                    if (child instanceof Label) {
+                        Label label = (Label) child;
+                        label.setStyle("-fx-text-fill: " + textColor + ";");
+                    }
+                }
+
+                // Update hover effects
+                card.setOnMouseEntered(e -> {
+                    card.setStyle("-fx-background-color: " + hoverBg + "; " +
+                                 "-fx-background-radius: 8; " +
+                                 "-fx-border-color: " + borderColor + "; " +
+                                 "-fx-border-radius: 8; " +
+                                 "-fx-border-width: 1; " +
+                                 "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);");
+                });
+
+                card.setOnMouseExited(e -> {
+                    card.setStyle("-fx-background-color: " + cardBg + "; " +
+                                 "-fx-background-radius: 8; " +
+                                 "-fx-border-color: " + borderColor + "; " +
+                                 "-fx-border-radius: 8; " +
+                                 "-fx-border-width: 1;");
+                });
+            }
+        }
     }
     
     /**
