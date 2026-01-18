@@ -103,7 +103,9 @@ public class CurrentWeatherPanel extends VBox {
         }
 
         // Update detail labels
-        updateDetailLabelsTextColor("#333", "#999");
+        if (detailsGrid != null) {
+            updateDetailLabelsTextColor("#333", "#999");
+        }
 
         // Update footer
         if (lastUpdatedLabel != null) lastUpdatedLabel.setStyle("-fx-text-fill: #999;");
@@ -132,7 +134,9 @@ public class CurrentWeatherPanel extends VBox {
         }
 
         // Update detail labels
-        updateDetailLabelsTextColor("#e0e0e0", "#b0b0b0");
+        if (detailsGrid != null) {
+            updateDetailLabelsTextColor("#e0e0e0", "#b0b0b0");
+        }
 
         // Update footer
         if (lastUpdatedLabel != null) lastUpdatedLabel.setStyle("-fx-text-fill: #b0b0b0;");
