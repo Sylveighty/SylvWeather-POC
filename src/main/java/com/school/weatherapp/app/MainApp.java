@@ -155,18 +155,25 @@ public class MainApp extends Application {
      */
     private void toggleTheme() {
         darkThemeEnabled = !darkThemeEnabled;
-        
-        String themeCSS = darkThemeEnabled ? 
+
+        String themeCSS = darkThemeEnabled ?
             getClass().getResource("/theme-dark.css").toExternalForm() :
             getClass().getResource("/theme.css").toExternalForm();
-        
+
         scene.getStylesheets().clear();
         scene.getStylesheets().add(themeCSS);
-        
+
         // Update background colors
         if (darkThemeEnabled) {
             root.setStyle("-fx-background-color: #1a1a1a;");
             scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #1a1a1a;");
+            // Update mainLayout background (the VBox containing all panels)
+            for (javafx.scene.Node node : ((javafx.scene.layout.VBox) scrollPane.getContent()).getChildren()) {
+                if (node instanceof javafx.scene.layout.VBox) {
+                    // This is the mainLayout VBox
+                    node.setStyle("-fx-background-color: #1a1a1a;");
+                }
+            }
             currentWeatherPanel.applyDarkTheme();
             hourlyForecastPanel.applyDarkTheme();
             dailyForecastPanel.applyDarkTheme();
@@ -174,12 +181,19 @@ public class MainApp extends Application {
         } else {
             root.setStyle("-fx-background-color: #e8eaf6;");
             scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #e8eaf6;");
+            // Update mainLayout background (the VBox containing all panels)
+            for (javafx.scene.Node node : ((javafx.scene.layout.VBox) scrollPane.getContent()).getChildren()) {
+                if (node instanceof javafx.scene.layout.VBox) {
+                    // This is the mainLayout VBox - set transparent since panels have their own backgrounds
+                    node.setStyle("-fx-background-color: transparent;");
+                }
+            }
             currentWeatherPanel.applyLightTheme();
             hourlyForecastPanel.applyLightTheme();
             dailyForecastPanel.applyLightTheme();
             alertPanel.applyLightTheme();
         }
-        
+
         System.out.println("Theme: " + (darkThemeEnabled ? "Dark" : "Light"));
     }
     

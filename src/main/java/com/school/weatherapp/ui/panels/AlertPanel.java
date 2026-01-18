@@ -33,20 +33,100 @@ public class AlertPanel extends VBox {
         
         this.setPadding(new Insets(20));
         this.setSpacing(15);
-        this.applyLightTheme();
         this.setMaxWidth(1200);
         
+        // Build UI components FIRST
         buildTitle();
         buildAlertsContainer();
-        showNoAlerts();
+        showNoAlerts();           // safe to call now
+        
+        // Apply theme LAST – now alertsContainer exists
+        this.applyLightTheme();   // ← moved here
     }
     
     public void applyLightTheme() {
         this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+        if (titleLabel != null) {
+            titleLabel.setStyle("-fx-text-fill: #d32f2f;");
+        }
+
+        if (alertsContainer != null) {
+            alertsContainer.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20;");
+        }
+
+        if (alertsScrollPane != null) {
+            alertsScrollPane.setStyle("-fx-control-inner-background: white;");
+        }
+
+        // Safe to call now
+        updateAlertCardsTheme(true);
     }
-    
+
     public void applyDarkTheme() {
         this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
+
+        if (titleLabel != null) {
+            titleLabel.setStyle("-fx-text-fill: #ff6b6b;");
+        }
+
+        if (alertsContainer != null) {
+            alertsContainer.setStyle("-fx-background-color: #333333; -fx-background-radius: 8; -fx-padding: 20;");
+        }
+
+        if (alertsScrollPane != null) {
+            alertsScrollPane.setStyle("-fx-control-inner-background: #333333;");
+        }
+
+        updateAlertCardsTheme(false);
+    }
+
+    /**
+     * Helper method to update alert cards theme
+     */
+    private void updateAlertCardsTheme(boolean isLight) {
+        if (alertsContainer == null) {
+            return;  // prevent NPE if called too early (extra safety)
+        }
+
+        String bgColor, borderColor, textColor;
+
+        if (isLight) {
+            bgColor = "white";
+            borderColor = "#ccc";
+            textColor = "#333";
+        } else {
+            bgColor = "#3a3a3a";
+            borderColor = "#555555";
+            textColor = "#e0e0e0";
+        }
+
+        for (javafx.scene.Node node : alertsContainer.getChildren()) {
+            if (node instanceof VBox card) {
+                // Skip loading/placeholder boxes
+                if (!card.getChildren().isEmpty() && card.getChildren().get(0) instanceof Label firstLabel) {
+                    String text = firstLabel.getText();
+                    if ("No active weather alerts".equals(text) || text.contains("Loading")) {
+                        firstLabel.setStyle("-fx-text-fill: " + (isLight ? "#999" : "#b0b0b0") + "; -fx-font-size: 14px;");
+                        continue;
+                    }
+                }
+
+                // Update card background
+                card.setStyle("-fx-background-color: " + bgColor + "; " +
+                              "-fx-background-radius: 6; " +
+                              "-fx-border-color: " + borderColor + "; " +
+                              "-fx-border-width: 1; " +
+                              "-fx-border-radius: 6;");
+
+                // Update text colors in all labels
+                for (javafx.scene.Node child : card.getChildren()) {
+                    if (child instanceof Label label) {
+                        label.setStyle("-fx-text-fill: " + textColor + ";");
+                    }
+                }
+            }
+        }
     }
     
     private void buildTitle() {
