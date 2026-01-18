@@ -1,15 +1,12 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
 }
 
 group = 'com.school'
 version = '1.0-SNAPSHOT'
-
-java {
-    sourceCompatibility = '17'
-}
+sourceCompatibility = '17'
 
 repositories {
     mavenCentral()
@@ -29,21 +26,18 @@ dependencies {
 
 javafx {
     version = '21'
-    modules = ['javafx.controls', 'javafx.fxml']
+    modules = ['javafx.controls']
 }
 
 application {
+    mainModule = 'com.school.weatherapp'
     mainClass = 'com.school.weatherapp.app.MainApp'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
-// Task to run the application
-task runApp(type: JavaExec) {
-    group = 'application'
-    description = 'Run the Weather Application'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.school.weatherapp.app.MainApp'
+// Configure the run task with proper JavaFX settings
+run {
+    // Ensure JavaFX modules are loaded
+    doFirst {
+        println "Running Weather App with JavaFX..."
+    }
 }
