@@ -30,33 +30,48 @@ public class FavoritesPanel extends VBox {
      * Constructor - builds the UI panel
      */
     public FavoritesPanel() {
-        this.favoritesService = new FavoritesService();
+    this.favoritesService = new FavoritesService();
 
-        // Panel styling
-        this.setPadding(new Insets(20));
-        this.setSpacing(15);
-        this.applyLightTheme();
-        this.setMaxWidth(400);
-        this.setPrefHeight(300);
+    this.setPadding(new Insets(20));
+    this.setSpacing(15);
+    this.setMaxWidth(400);
+    this.setPrefHeight(300);
 
-        // Build UI
-        buildHeader();
-        buildFavoritesList();
-        refreshFavorites();
-    }
+    buildHeader();
+    buildFavoritesList();           // ← create favoritesList first
+    refreshFavorites();
+
+    applyLightTheme();              // ← now safe
+}
 
     /**
      * Apply light theme colors
      */
     public void applyLightTheme() {
         this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        
+        // Update favorites list background
+        if (favoritesList != null) {
+            favoritesList.setStyle("-fx-background-color: white; -fx-background-radius: 8;");
+        }
+        
+        // Update all city items in the list
+        updateCityItemsTheme("#333", "#f8f9fa", "#e9ecef");
     }
 
     /**
-     * Apply dark theme colors
+     * Apply dark theme colors (Discord/VS Code style)
      */
     public void applyDarkTheme() {
-        this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
+        this.setStyle("-fx-background-color: #2b2b2b; -fx-background-radius: 10;");
+        
+        // Update favorites list background
+        if (favoritesList != null) {
+            favoritesList.setStyle("-fx-background-color: #1e1e1e; -fx-background-radius: 8;");
+        }
+        
+        // Update all city items in the list
+        updateCityItemsTheme("#e0e0e0", "#2d2d30", "#3e3e42");
     }
 
     /**
@@ -201,5 +216,27 @@ public class FavoritesPanel extends VBox {
                 refreshFavorites();
             }
         });
+    }
+    
+    /**
+     * Update all city items in the list with new theme colors
+     */
+    private void updateCityItemsTheme(String textColor, String backgroundColor, String borderColor) {
+        for (javafx.scene.Node node : favoritesList.getChildren()) {
+            if (node instanceof HBox cityItem) {
+                // Update city item background and border
+                cityItem.setStyle("-fx-background-color: " + backgroundColor + "; " +
+                                 "-fx-background-radius: 6; " +
+                                 "-fx-border-color: " + borderColor + "; " +
+                                 "-fx-border-radius: 6;");
+                
+                // Update city label text color
+                for (javafx.scene.Node child : cityItem.getChildren()) {
+                    if (child instanceof Label label) {
+                        label.setStyle("-fx-text-fill: " + textColor + ";");
+                    }
+                }
+            }
+        }
     }
 }

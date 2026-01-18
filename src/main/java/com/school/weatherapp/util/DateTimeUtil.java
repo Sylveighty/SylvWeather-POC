@@ -164,4 +164,77 @@ public class DateTimeUtil {
     public static long getCurrentTimestamp() {
         return System.currentTimeMillis() / 1000;
     }
+
+    /**
+     * Get time of day classification (Morning, Noon, Afternoon, Evening, Night, Midnight)
+     *
+     * @param timestamp Unix timestamp in seconds
+     * @return Time of day string
+     */
+    public static String getTimeOfDay(long timestamp) {
+        Instant instant = Instant.ofEpochSecond(timestamp);
+        LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        int hour = dateTime.getHour();
+
+        if (hour >= 5 && hour < 10) {
+            return "Morning";
+        } else if (hour >= 10 && hour < 12) {
+            return "Late Morning";
+        } else if (hour >= 12 && hour < 14) {
+            return "Noon";
+        } else if (hour >= 14 && hour < 17) {
+            return "Afternoon";
+        } else if (hour >= 17 && hour < 20) {
+            return "Evening";
+        } else if (hour >= 20 && hour < 24) {
+            return "Night";
+        } else {
+            return "Midnight";
+        }
+    }
+
+    /**
+     * Get time of day with emoji representation
+     *
+     * @param timestamp Unix timestamp in seconds
+     * @return Time of day with emoji
+     */
+    public static String getTimeOfDayWithEmoji(long timestamp) {
+        String timeOfDay = getTimeOfDay(timestamp);
+        String emoji = switch (timeOfDay) {
+            case "Morning" -> "🌅";
+            case "Late Morning" -> "☀️";
+            case "Noon" -> "☀️";
+            case "Afternoon" -> "🌤️";
+            case "Evening" -> "🌆";
+            case "Night" -> "🌙";
+            case "Midnight" -> "🌙";
+            default -> "⏰";
+        };
+        return emoji + " " + timeOfDay;
+    }
+
+    /**
+     * Get formatted time with time of day
+     *
+     * @param timestamp Unix timestamp in seconds
+     * @return Formatted string like "22:30 (Night)"
+     */
+    public static String formatTimeWithOfDay(long timestamp) {
+        String time = formatTime(timestamp);
+        String timeOfDay = getTimeOfDay(timestamp);
+        return time + " (" + timeOfDay + ")";
+    }
+
+    /**
+     * Get full date and time with time of day
+     *
+     * @param timestamp Unix timestamp in seconds
+     * @return Formatted string like "Jan 18, 2026 22:30 (Night)"
+     */
+    public static String formatDateTimeWithOfDay(long timestamp) {
+        String dateTime = formatDateTime(timestamp);
+        String timeOfDay = getTimeOfDay(timestamp);
+        return dateTime + " (" + timeOfDay + ")";
+    }
 }
