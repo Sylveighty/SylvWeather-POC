@@ -18,60 +18,84 @@ import java.util.function.Consumer;
  * - Empty state when no favorites exist
  *
  * @author Weather App Team
- * @version 1.0
+ * @version 1.1 (Theme Support)
  */
 public class FavoritesPanel extends VBox {
 
     private final FavoritesService favoritesService;
     private Consumer<String> onCitySelectCallback;
     private VBox favoritesList;
+    private Label headerLabel;
+    private ScrollPane scrollPane;
+    private boolean isDarkTheme = false;
 
     /**
      * Constructor - builds the UI panel
      */
     public FavoritesPanel() {
-    this.favoritesService = new FavoritesService();
+        this.favoritesService = new FavoritesService();
 
-    this.setPadding(new Insets(20));
-    this.setSpacing(15);
-    this.setMaxWidth(400);
-    this.setPrefHeight(300);
+        // Panel styling - responsive sizing
+        this.setPadding(new Insets(20));
+        this.setSpacing(15);
+        this.setMinWidth(350);
+        this.setPrefWidth(450);
+        this.setMaxWidth(550);
+        this.setPrefHeight(300);
 
-    buildHeader();
-    buildFavoritesList();           // ← create favoritesList first
-    refreshFavorites();
-
-    applyLightTheme();              // ← now safe
-}
+        // Build UI
+        buildHeader();
+        buildFavoritesList();
+        refreshFavorites();
+        
+        // Apply default theme
+        applyLightTheme();
+    }
 
     /**
      * Apply light theme colors
      */
     public void applyLightTheme() {
+        isDarkTheme = false;
         this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
         
-        // Update favorites list background
+        if (headerLabel != null) {
+            headerLabel.setStyle("-fx-text-fill: #333;");
+        }
+        
         if (favoritesList != null) {
             favoritesList.setStyle("-fx-background-color: white; -fx-background-radius: 8;");
         }
         
-        // Update all city items in the list
-        updateCityItemsTheme("#333", "#f8f9fa", "#e9ecef");
+        if (scrollPane != null) {
+            scrollPane.setStyle("-fx-background-color: transparent; -fx-background: white;");
+        }
+        
+        // Refresh to update all city items
+        refreshFavorites();
     }
 
     /**
-     * Apply dark theme colors (Discord/VS Code style)
+     * Apply dark theme colors
      */
     public void applyDarkTheme() {
-        this.setStyle("-fx-background-color: #2b2b2b; -fx-background-radius: 10;");
+        isDarkTheme = true;
+        this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
         
-        // Update favorites list background
-        if (favoritesList != null) {
-            favoritesList.setStyle("-fx-background-color: #1e1e1e; -fx-background-radius: 8;");
+        if (headerLabel != null) {
+            headerLabel.setStyle("-fx-text-fill: #e0e0e0;");
         }
         
-        // Update all city items in the list
-        updateCityItemsTheme("#e0e0e0", "#2d2d30", "#3e3e42");
+        if (favoritesList != null) {
+            favoritesList.setStyle("-fx-background-color: #333333; -fx-background-radius: 8;");
+        }
+        
+        if (scrollPane != null) {
+            scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #333333;");
+        }
+        
+        // Refresh to update all city items
+        refreshFavorites();
     }
 
     /**
@@ -87,9 +111,8 @@ public class FavoritesPanel extends VBox {
      * Build header with title
      */
     private void buildHeader() {
-        Label headerLabel = new Label("Favorite Cities");
+        headerLabel = new Label("Favorite Cities");
         headerLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
-        headerLabel.setStyle("-fx-text-fill: #333;");
         headerLabel.setAlignment(Pos.CENTER);
         headerLabel.setMaxWidth(Double.MAX_VALUE);
 
@@ -102,12 +125,10 @@ public class FavoritesPanel extends VBox {
     private void buildFavoritesList() {
         favoritesList = new VBox(10);
         favoritesList.setPadding(new Insets(10));
-        favoritesList.setStyle("-fx-background-color: white; -fx-background-radius: 8;");
 
-        ScrollPane scrollPane = new ScrollPane(favoritesList);
+        scrollPane = new ScrollPane(favoritesList);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(200);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #f5f5f5;");
 
         this.getChildren().add(scrollPane);
     }
@@ -137,11 +158,11 @@ public class FavoritesPanel extends VBox {
 
         Label emptyLabel = new Label("No favorite cities yet");
         emptyLabel.setFont(Font.font("System", 14));
-        emptyLabel.setStyle("-fx-text-fill: #999;");
+        emptyLabel.setStyle(isDarkTheme ? "-fx-text-fill: #b0b0b0;" : "-fx-text-fill: #999;");
 
         Label hintLabel = new Label("Search for a city and click the favorite button to add one!");
         hintLabel.setFont(Font.font("System", 12));
-        hintLabel.setStyle("-fx-text-fill: #bbb;");
+        hintLabel.setStyle(isDarkTheme ? "-fx-text-fill: #888;" : "-fx-text-fill: #bbb;");
         hintLabel.setWrapText(true);
         hintLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
@@ -166,26 +187,33 @@ public class FavoritesPanel extends VBox {
         HBox itemBox = new HBox(10);
         itemBox.setAlignment(Pos.CENTER_LEFT);
         itemBox.setPadding(new Insets(8, 12, 8, 12));
-        itemBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 6; -fx-border-color: #e9ecef; -fx-border-radius: 6;");
+        
+        // Theme-aware styling
+        String boxBg = isDarkTheme ? "#3a3a3a" : "#f8f9fa";
+        String boxBorder = isDarkTheme ? "#555555" : "#e9ecef";
+        String textColor = isDarkTheme ? "#e0e0e0" : "#333";
+        
+        itemBox.setStyle("-fx-background-color: " + boxBg + "; -fx-background-radius: 6; " +
+                        "-fx-border-color: " + boxBorder + "; -fx-border-radius: 6;");
 
         // City name label
         Label cityLabel = new Label(cityName);
         cityLabel.setFont(Font.font("System", 14));
-        cityLabel.setStyle("-fx-text-fill: #333;");
+        cityLabel.setStyle("-fx-text-fill: " + textColor + ";");
         cityLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(cityLabel, Priority.ALWAYS);
 
         // Select button
         Button selectButton = new Button("View");
         selectButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; " +
-                             "-fx-font-size: 12px; -fx-cursor: hand;");
+                             "-fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 6 12;");
         selectButton.setOnAction(e -> handleCitySelect(cityName));
 
         // Remove button
         Button removeButton = new Button("✕");
         removeButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; " +
                              "-fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand; " +
-                             "-fx-min-width: 30px; -fx-max-width: 30px;");
+                             "-fx-min-width: 30px; -fx-max-width: 30px; -fx-padding: 6 12;");
         removeButton.setOnAction(e -> handleCityRemove(cityName));
 
         itemBox.getChildren().addAll(cityLabel, selectButton, removeButton);
@@ -216,27 +244,5 @@ public class FavoritesPanel extends VBox {
                 refreshFavorites();
             }
         });
-    }
-    
-    /**
-     * Update all city items in the list with new theme colors
-     */
-    private void updateCityItemsTheme(String textColor, String backgroundColor, String borderColor) {
-        for (javafx.scene.Node node : favoritesList.getChildren()) {
-            if (node instanceof HBox cityItem) {
-                // Update city item background and border
-                cityItem.setStyle("-fx-background-color: " + backgroundColor + "; " +
-                                 "-fx-background-radius: 6; " +
-                                 "-fx-border-color: " + borderColor + "; " +
-                                 "-fx-border-radius: 6;");
-                
-                // Update city label text color
-                for (javafx.scene.Node child : cityItem.getChildren()) {
-                    if (child instanceof Label label) {
-                        label.setStyle("-fx-text-fill: " + textColor + ";");
-                    }
-                }
-            }
-        }
     }
 }
