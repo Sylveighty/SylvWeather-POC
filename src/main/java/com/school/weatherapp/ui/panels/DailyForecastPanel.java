@@ -207,13 +207,29 @@ public class DailyForecastPanel extends VBox {
         Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
         icon.setStyle("-fx-font-size: 36px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
 
+        // Determine if conversion is needed
+        boolean needConversion = forecast.getTemperatureUnit() != null && 
+            ((forecast.getTemperatureUnit().equals("imperial") && !isImperial) ||
+             (forecast.getTemperatureUnit().equals("metric") && isImperial));
+        
         // Convert temperatures based on unit preference
-        double highTemp = isImperial ?
-            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTempMax()) :
-            forecast.getTempMax();
-        double lowTemp = isImperial ?
-            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTempMin()) :
-            forecast.getTempMin();
+        double highTemp;
+        double lowTemp;
+        if (needConversion) {
+            if (forecast.getTemperatureUnit().equals("imperial")) {
+                // Convert from Fahrenheit to Celsius
+                highTemp = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(forecast.getTempMax());
+                lowTemp = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(forecast.getTempMin());
+            } else {
+                // Convert from Celsius to Fahrenheit
+                highTemp = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTempMax());
+                lowTemp = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTempMin());
+            }
+        } else {
+            // No conversion needed, use original values
+            highTemp = forecast.getTempMax();
+            lowTemp = forecast.getTempMin();
+        }
         String tempUnit = isImperial ? "°F" : "°C";
 
         Label highLabel = new Label(String.format("%.0f%s", highTemp, tempUnit));

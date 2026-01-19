@@ -90,16 +90,17 @@ public class WeatherService {
         }
         
         // Parse JSON response
-        return parseWeatherResponse(response.body());
+        return parseWeatherResponse(response.body(), units);
     }
     
     /**
      * Parse JSON response from OpenWeatherMap API into Weather object
      * 
      * @param jsonResponse JSON string from API
+     * @param units The temperature units used in the API request
      * @return Weather object populated with data
      */
-    private Weather parseWeatherResponse(String jsonResponse) {
+    private Weather parseWeatherResponse(String jsonResponse, String units) {
         JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
         Weather weather = new Weather();
         
@@ -116,6 +117,9 @@ public class WeatherService {
         weather.setTempMax(main.get("temp_max").getAsDouble());
         weather.setHumidity(main.get("humidity").getAsInt());
         weather.setPressure(main.get("pressure").getAsInt());
+        
+        // Set the temperature unit based on the API request
+        weather.setTemperatureUnit(units);
         
         // Parse weather condition
         JsonObject weatherObj = json.getAsJsonArray("weather").get(0).getAsJsonObject();

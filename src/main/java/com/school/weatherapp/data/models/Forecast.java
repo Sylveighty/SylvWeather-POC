@@ -25,6 +25,9 @@ public class Forecast {
     private double tempMax;           // Maximum temperature (daily)
     private double feelsLike;         // Feels like temperature
     
+    // Track the unit system this forecast data was fetched with
+    private String temperatureUnit;   // "imperial" or "metric"
+    
     // Weather condition
     private String condition;         // e.g., "Clear", "Rain"
     private String description;       // e.g., "clear sky"
@@ -71,6 +74,14 @@ public class Forecast {
     
     public void setTemperature(double temperature) {
         this.temperature = temperature;
+    }
+    
+    public String getTemperatureUnit() {
+        return temperatureUnit;
+    }
+    
+    public void setTemperatureUnit(String temperatureUnit) {
+        this.temperatureUnit = temperatureUnit;
     }
     
     public double getTempMin() {

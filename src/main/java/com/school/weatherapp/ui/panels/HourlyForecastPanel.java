@@ -198,10 +198,25 @@ public class HourlyForecastPanel extends VBox {
         Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
         icon.setStyle("-fx-font-size: 32px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
 
+        // Determine if conversion is needed
+        boolean needConversion = forecast.getTemperatureUnit() != null && 
+            ((forecast.getTemperatureUnit().equals("imperial") && !isImperial) ||
+             (forecast.getTemperatureUnit().equals("metric") && isImperial));
+        
         // Convert temperature based on unit preference
-        double tempValue = isImperial ?
-            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTemperature()) :
-            forecast.getTemperature();
+        double tempValue;
+        if (needConversion) {
+            if (forecast.getTemperatureUnit().equals("imperial")) {
+                // Convert from Fahrenheit to Celsius
+                tempValue = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(forecast.getTemperature());
+            } else {
+                // Convert from Celsius to Fahrenheit
+                tempValue = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTemperature());
+            }
+        } else {
+            // No conversion needed, use original value
+            tempValue = forecast.getTemperature();
+        }
         String unit = isImperial ? "°F" : "°C";
         Label tempLabel = new Label(String.format("%.0f%s", tempValue, unit));
         tempLabel.setFont(Font.font("System", FontWeight.BOLD, 16));

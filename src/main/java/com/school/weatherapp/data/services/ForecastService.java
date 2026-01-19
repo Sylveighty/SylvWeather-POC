@@ -99,16 +99,17 @@ public class ForecastService {
         }
         
         // Parse JSON response
-        return parseForecastResponse(response.body());
+        return parseForecastResponse(response.body(), units);
     }
     
     /**
      * Parse JSON response from OpenWeatherMap API into list of Forecast objects
      * 
      * @param jsonResponse JSON string from API
+     * @param units The temperature units used in the API request
      * @return List of Forecast objects
      */
-    private List<Forecast> parseForecastResponse(String jsonResponse) {
+    private List<Forecast> parseForecastResponse(String jsonResponse, String units) {
         List<Forecast> forecasts = new ArrayList<>();
         JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
         JsonArray list = json.getAsJsonArray("list");
@@ -216,6 +217,9 @@ public class ForecastService {
             dailyForecast.setDayOfWeek(first.getDayOfWeek());
             dailyForecast.setTimeLabel(first.getDayOfWeek());
             dailyForecast.setTimestamp(first.getTimestamp());
+            
+            // Set temperature unit from the first forecast
+            dailyForecast.setTemperatureUnit(first.getTemperatureUnit());
             
             // Calculate min/max temps
             double minTemp = dayForecasts.stream()

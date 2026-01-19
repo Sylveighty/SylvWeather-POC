@@ -595,24 +595,61 @@ public class CurrentWeatherPanel extends VBox {
      * @param isImperial true for Fahrenheit, false for Celsius
      */
     private void updateDisplayWithUnit(Weather weather, boolean isImperial) {
+        // Determine if conversion is needed
+        boolean needConversion = weather.getTemperatureUnit() != null && 
+            ((weather.getTemperatureUnit().equals("imperial") && !isImperial) ||
+             (weather.getTemperatureUnit().equals("metric") && isImperial));
+        
         // Update temperature
-        double tempValue = isImperial ?
-            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getTemperature()) :
-            weather.getTemperature();
+        double tempValue;
+        if (needConversion) {
+            if (weather.getTemperatureUnit().equals("imperial")) {
+                // Convert from Fahrenheit to Celsius
+                tempValue = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(weather.getTemperature());
+            } else {
+                // Convert from Celsius to Fahrenheit
+                tempValue = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getTemperature());
+            }
+        } else {
+            // No conversion needed, use original value
+            tempValue = weather.getTemperature();
+        }
+        
         String tempUnit = isImperial ? "°F" : "°C";
         temperatureLabel.setText(String.format("%.0f%s", tempValue, tempUnit));
 
         // Update feels like
-        double feelsLikeValue = isImperial ?
-            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getFeelsLike()) :
-            weather.getFeelsLike();
+        double feelsLikeValue;
+        if (needConversion) {
+            if (weather.getTemperatureUnit().equals("imperial")) {
+                // Convert from Fahrenheit to Celsius
+                feelsLikeValue = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(weather.getFeelsLike());
+            } else {
+                // Convert from Celsius to Fahrenheit
+                feelsLikeValue = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getFeelsLike());
+            }
+        } else {
+            // No conversion needed, use original value
+            feelsLikeValue = weather.getFeelsLike();
+        }
         feelsLikeLabel.setText(String.format("%.0f%s", feelsLikeValue, tempUnit));
 
         // Update wind speed unit
         String windUnit = isImperial ? "mph" : "m/s";
-        double windSpeedValue = isImperial ?
-            weather.getWindSpeed() * 2.237 : // Convert m/s to mph
-            weather.getWindSpeed();
+        double windSpeedValue;
+        if (needConversion) {
+            // Convert wind speed from m/s to mph or vice versa
+            if (weather.getTemperatureUnit().equals("imperial")) {
+                // Convert from mph to m/s
+                windSpeedValue = weather.getWindSpeed() / 2.237;
+            } else {
+                // Convert from m/s to mph
+                windSpeedValue = weather.getWindSpeed() * 2.237;
+            }
+        } else {
+            // No conversion needed, use original value
+            windSpeedValue = weather.getWindSpeed();
+        }
         windLabel.setText(String.format("%.1f %s %s",
             windSpeedValue, windUnit, weather.getWindDirectionCompass()));
     }
