@@ -2,7 +2,6 @@ package com.school.weatherapp.ui.panels;
 
 import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
-import com.school.weatherapp.util.TemperatureUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
