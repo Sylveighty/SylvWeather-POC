@@ -3,144 +3,106 @@ package com.school.weatherapp.ui.panels;
 import com.school.weatherapp.features.FavoritesService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
+
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * FavoritesPanel - UI panel displaying and managing favorite cities
+ * FavoritesPanel - UI panel for displaying and managing favorite cities.
  *
- * This panel shows:
- * - List of favorite cities
- * - Buttons to select or remove favorites
- * - Empty state when no favorites exist
+ * Responsibilities:
+ * - Display list of favorite cities
+ * - Allow selecting a city (callback to MainApp)
+ * - Allow removing a city from favorites
  *
- * @author Weather App Team
- * @version 1.1 (Theme Support)
+ * Styling is handled primarily through theme.css / theme-dark.css.
  */
 public class FavoritesPanel extends VBox {
 
+    private static final String THEME_LIGHT = "/theme.css";
+    private static final String THEME_DARK = "/theme-dark.css";
+
     private final FavoritesService favoritesService;
+
     private Consumer<String> onCitySelectCallback;
+
     private VBox favoritesList;
     private Label headerLabel;
     private ScrollPane scrollPane;
-    private boolean isDarkTheme = false;
 
-    /**
-     * Constructor - builds the UI panel
-     */
     public FavoritesPanel() {
         this.favoritesService = new FavoritesService();
 
-        // Panel styling - responsive sizing
-        this.setPadding(new Insets(20));
-        this.setSpacing(15);
-        this.setMinWidth(350);
-        this.setPrefWidth(450);
-        this.setMaxWidth(550);
-        this.setPrefHeight(300);
+        setPadding(new Insets(20));
+        setSpacing(15);
+        setMinWidth(350);
+        setPrefWidth(450);
+        setMaxWidth(550);
+        setPrefHeight(300);
 
-        // Build UI
+        // Panel styling via CSS
+        getStyleClass().add("panel-background");
+
         buildHeader();
         buildFavoritesList();
         refreshFavorites();
-        
-        // Apply default theme
+
+        // Default theme application (MainApp also controls stylesheet ordering)
         applyLightTheme();
     }
 
-    /**
-     * Apply light theme colors
-     */
+    // -------------------- Theme Methods --------------------
+
     public void applyLightTheme() {
-        isDarkTheme = false;
-        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
-        
-        if (headerLabel != null) {
-            headerLabel.setStyle("-fx-text-fill: #333;");
-        }
-        
-        if (favoritesList != null) {
-            favoritesList.setStyle("-fx-background-color: white; -fx-background-radius: 8;");
-        }
-        
-        if (scrollPane != null) {
-            scrollPane.setStyle("-fx-background-color: transparent; -fx-background: white;");
-        }
-        
-        // Refresh to update all city items
-        refreshFavorites();
+        ensureStylesheetOrder(THEME_LIGHT, THEME_DARK);
     }
 
-    /**
-     * Apply dark theme colors
-     */
     public void applyDarkTheme() {
-        isDarkTheme = true;
-        this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
-        
-        if (headerLabel != null) {
-            headerLabel.setStyle("-fx-text-fill: #e0e0e0;");
-        }
-        
-        if (favoritesList != null) {
-            favoritesList.setStyle("-fx-background-color: #333333; -fx-background-radius: 8;");
-        }
-        
-        if (scrollPane != null) {
-            scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #333333;");
-        }
-        
-        // Refresh to update all city items
-        refreshFavorites();
+        ensureStylesheetOrder(THEME_DARK, THEME_LIGHT);
     }
 
+    private void ensureStylesheetOrder(String primary, String secondary) {
+        Scene scene = getScene();
+        if (scene == null) return;
+
+        String primaryUrl = getClass().getResource(primary) != null ? getClass().getResource(primary).toExternalForm() : null;
+        String secondaryUrl = getClass().getResource(secondary) != null ? getClass().getResource(secondary).toExternalForm() : null;
+
+        if (primaryUrl == null || secondaryUrl == null) return;
+
+        var stylesheets = scene.getStylesheets();
+        stylesheets.remove(primaryUrl);
+        stylesheets.remove(secondaryUrl);
+        stylesheets.add(secondaryUrl);
+        stylesheets.add(primaryUrl);
+    }
+
+    // -------------------- Public API --------------------
+
     /**
-     * Set callback to be notified when a favorite city is selected
-     *
-     * @param callback Function to call with selected city name
+     * Set callback to be notified when a favorite city is selected.
      */
     public void setOnCitySelect(Consumer<String> callback) {
         this.onCitySelectCallback = callback;
     }
 
     /**
-     * Build header with title
-     */
-    private void buildHeader() {
-        headerLabel = new Label("Favorite Cities");
-        headerLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
-        headerLabel.setAlignment(Pos.CENTER);
-        headerLabel.setMaxWidth(Double.MAX_VALUE);
-
-        this.getChildren().add(headerLabel);
-    }
-
-    /**
-     * Build scrollable favorites list container
-     */
-    private void buildFavoritesList() {
-        favoritesList = new VBox(10);
-        favoritesList.setPadding(new Insets(10));
-
-        scrollPane = new ScrollPane(favoritesList);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefHeight(200);
-
-        this.getChildren().add(scrollPane);
-    }
-
-    /**
-     * Refresh the favorites list display
+     * Refresh the favorites list display.
      */
     public void refreshFavorites() {
         favoritesList.getChildren().clear();
 
-        var favorites = favoritesService.getFavorites();
-
+        List<String> favorites = favoritesService.getFavorites();
         if (favorites.isEmpty()) {
             showEmptyState();
         } else {
@@ -148,90 +110,93 @@ public class FavoritesPanel extends VBox {
         }
     }
 
-    /**
-     * Show empty state when no favorites exist
-     */
+    // -------------------- UI Build --------------------
+
+    private void buildHeader() {
+        headerLabel = new Label("Favorite Cities");
+        headerLabel.setAlignment(Pos.CENTER);
+        headerLabel.setMaxWidth(Double.MAX_VALUE);
+        headerLabel.getStyleClass().add("section-title");
+
+        getChildren().add(headerLabel);
+    }
+
+    private void buildFavoritesList() {
+        favoritesList = new VBox(10);
+        favoritesList.setPadding(new Insets(10));
+        favoritesList.getStyleClass().add("panel-content");
+
+        scrollPane = new ScrollPane(favoritesList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(200);
+        scrollPane.getStyleClass().add("scroll-pane");
+
+        getChildren().add(scrollPane);
+    }
+
+    // -------------------- Rendering --------------------
+
     private void showEmptyState() {
         VBox emptyState = new VBox(10);
         emptyState.setAlignment(Pos.CENTER);
         emptyState.setPadding(new Insets(20));
 
         Label emptyLabel = new Label("No favorite cities yet");
-        emptyLabel.setFont(Font.font("System", 14));
-        emptyLabel.setStyle(isDarkTheme ? "-fx-text-fill: #b0b0b0;" : "-fx-text-fill: #999;");
+        emptyLabel.getStyleClass().add("label-secondary");
 
-        Label hintLabel = new Label("Search for a city and click the favorite button to add one!");
-        hintLabel.setFont(Font.font("System", 12));
-        hintLabel.setStyle(isDarkTheme ? "-fx-text-fill: #888;" : "-fx-text-fill: #bbb;");
+        Label hintLabel = new Label("Search for a city and click the favorite button to add one.");
+        hintLabel.getStyleClass().add("label-subtle");
         hintLabel.setWrapText(true);
-        hintLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        hintLabel.setTextAlignment(TextAlignment.CENTER);
+        hintLabel.setMaxWidth(260);
 
         emptyState.getChildren().addAll(emptyLabel, hintLabel);
         favoritesList.getChildren().add(emptyState);
     }
 
-    /**
-     * Show the list of favorite cities
-     */
-    private void showFavorites(java.util.List<String> favorites) {
+    private void showFavorites(List<String> favorites) {
         for (String city : favorites) {
-            HBox cityItem = createCityItem(city);
-            favoritesList.getChildren().add(cityItem);
+            favoritesList.getChildren().add(createCityItem(city));
         }
     }
 
-    /**
-     * Create a UI item for a favorite city
-     */
     private HBox createCityItem(String cityName) {
         HBox itemBox = new HBox(10);
         itemBox.setAlignment(Pos.CENTER_LEFT);
-        itemBox.setPadding(new Insets(8, 12, 8, 12));
-        
-        // Theme-aware styling
-        String boxBg = isDarkTheme ? "#3a3a3a" : "#f8f9fa";
-        String boxBorder = isDarkTheme ? "#555555" : "#e9ecef";
-        String textColor = isDarkTheme ? "#e0e0e0" : "#333";
-        
-        itemBox.setStyle("-fx-background-color: " + boxBg + "; -fx-background-radius: 6; " +
-                        "-fx-border-color: " + boxBorder + "; -fx-border-radius: 6;");
 
-        // City name label
+        // Reuse a generic card style from CSS
+        itemBox.getStyleClass().add("forecast-card");
+
         Label cityLabel = new Label(cityName);
-        cityLabel.setFont(Font.font("System", 14));
-        cityLabel.setStyle("-fx-text-fill: " + textColor + ";");
+        cityLabel.getStyleClass().add("label-primary");
         cityLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(cityLabel, Priority.ALWAYS);
 
-        // Select button
-        Button selectButton = new Button("View");
-        selectButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; " +
-                             "-fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 6 12;");
-        selectButton.setOnAction(e -> handleCitySelect(cityName));
+        Button viewButton = new Button("View");
+        // Uses default .button styling from CSS
 
-        // Remove button
+        viewButton.setOnAction(e -> handleCitySelect(cityName));
+
         Button removeButton = new Button("✕");
-        removeButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; " +
-                             "-fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand; " +
-                             "-fx-min-width: 30px; -fx-max-width: 30px; -fx-padding: 6 12;");
+        // Make it clearly destructive using existing CSS class
+        removeButton.getStyleClass().add("favorite-remove");
+        removeButton.setMinWidth(36);
+        removeButton.setPrefWidth(36);
+
         removeButton.setOnAction(e -> handleCityRemove(cityName));
 
-        itemBox.getChildren().addAll(cityLabel, selectButton, removeButton);
+        itemBox.getChildren().addAll(cityLabel, viewButton, removeButton);
         return itemBox;
     }
 
-    /**
-     * Handle city selection
-     */
+    // -------------------- Actions --------------------
+
     private void handleCitySelect(String cityName) {
         if (onCitySelectCallback != null) {
             onCitySelectCallback.accept(cityName);
         }
     }
 
-    /**
-     * Handle city removal from favorites
-     */
     private void handleCityRemove(String cityName) {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Remove Favorite");

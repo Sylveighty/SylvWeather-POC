@@ -1,9 +1,10 @@
-/* Dark Theme - theme-dark.css */
+/* theme-dark.css - Dark Theme */
 
 .root {
     -fx-font-family: "System";
     -fx-font-size: 12;
     -fx-base: #2a2a2a;
+    -fx-background-color: #1e1e1e;
 }
 
 .main-container {
@@ -12,28 +13,25 @@
 
 .panel-background {
     -fx-background-color: #2a2a2a;
+    -fx-background-radius: 10;
 }
 
 .panel-content {
     -fx-background-color: #333333;
-}
-
-.forecast-card {
-    -fx-background-color: #3a3a3a;
     -fx-background-radius: 8;
-    -fx-border-color: #555555;
-    -fx-border-width: 1;
 }
 
-.forecast-card:hover {
-    -fx-background-color: #444444;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0, 0, 2);
-}
-
+/* Typography */
 .title-text {
     -fx-font-size: 22;
     -fx-font-weight: bold;
     -fx-text-fill: #e0e0e0;
+}
+
+.section-title {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d0d0d0;
 }
 
 .label-primary {
@@ -46,6 +44,58 @@
     -fx-text-fill: #b0b0b0;
 }
 
+.label-subtle {
+    -fx-font-size: 11;
+    -fx-text-fill: #9a9a9a;
+}
+
+/* Weather panel specific */
+.city-label {
+    -fx-font-size: 28;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+}
+
+.temperature-large {
+    -fx-font-size: 72;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+}
+
+.condition-label {
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+    -fx-text-fill: #b0b0b0;
+}
+
+.description-label {
+    -fx-font-size: 16;
+    -fx-text-fill: #999999;
+}
+
+.footer-label {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-text-fill: #b0b0b0;
+}
+
+.detail-title {
+    -fx-font-size: 12;
+    -fx-text-fill: #9a9a9a;
+}
+
+.detail-value {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+}
+
+.weather-icon {
+    -fx-font-size: 80px;
+    -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+}
+
+/* Temperature coloring */
 .temp-hot {
     -fx-text-fill: #ff6b6b;
     -fx-font-weight: bold;
@@ -56,18 +106,54 @@
     -fx-font-weight: bold;
 }
 
+.temp-neutral {
+    -fx-text-fill: #ffa500;
+    -fx-font-weight: bold;
+}
+
+/* Button styling */
 .button {
     -fx-padding: 10 20 10 20;
     -fx-font-size: 14;
     -fx-background-color: #4CAF50;
     -fx-text-fill: white;
     -fx-background-radius: 6;
+    -fx-cursor: hand;
 }
 
 .button:hover {
     -fx-background-color: #45a049;
 }
 
+.button:pressed {
+    -fx-background-color: #2e7d32;
+}
+
+/* Small pill buttons (top-right toggles) */
+.pill-button {
+    -fx-font-size: 13;
+    -fx-padding: 10 18;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+}
+
+/* Favorites button variants */
+.favorite-add {
+    -fx-background-color: #FF9800;
+}
+
+.favorite-remove {
+    -fx-background-color: #F44336;
+}
+
+/* Search button */
+.search-button {
+    -fx-background-color: #45a049;
+}
+
+/* Text field styling */
 .text-field {
     -fx-padding: 10;
     -fx-border-radius: 6;
@@ -83,6 +169,21 @@
     -fx-border-width: 2;
 }
 
+/* Forecast cards */
+.forecast-card {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 8;
+    -fx-border-color: #555555;
+    -fx-border-width: 1;
+    -fx-padding: 15;
+}
+
+.forecast-card:hover {
+    -fx-background-color: #444444;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0, 0, 2);
+}
+
+/* Alert styling */
 .alert-high {
     -fx-background-color: #5a2a2a;
     -fx-border-color: #ff6b6b;
@@ -99,4 +200,9 @@
     -fx-background-color: #2a4a5a;
     -fx-border-color: #4da6ff;
     -fx-text-fill: #66b3ff;
+}
+
+/* Loading state */
+.loading {
+    -fx-opacity: 0.6;
 }

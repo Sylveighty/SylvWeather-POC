@@ -2,244 +2,178 @@ package com.school.weatherapp.ui.panels;
 
 import com.school.weatherapp.data.models.Alert;
 import com.school.weatherapp.data.services.AlertService;
+import com.school.weatherapp.util.DateTimeUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import java.util.List;
 
 /**
- * AlertPanel - UI panel for displaying weather alerts
- * 
- * @author Weather App Team
- * @version 1.0 (Phase 3)
+ * AlertPanel - UI panel displaying weather alerts.
+ *
+ * Notes (POC):
+ * - Alert availability can vary by location and API plan/endpoints.
+ * - The service may return simulated alerts when live alerts are unavailable.
+ *
+ * Styling is handled via theme.css / theme-dark.css.
  */
 public class AlertPanel extends VBox {
-    
-    private AlertService alertService;
+
+    private static final String THEME_LIGHT = "/theme.css";
+    private static final String THEME_DARK = "/theme-dark.css";
+
+    private final AlertService alertService;
+
     private Label titleLabel;
-    private ScrollPane alertsScrollPane;
     private VBox alertsContainer;
+    private VBox containerBox;
+
     private ProgressIndicator loadingIndicator;
-    
+
     public AlertPanel() {
         this.alertService = new AlertService();
-        
-        this.setPadding(new Insets(20));
-        this.setSpacing(15);
-        this.setMaxWidth(1200);
-        
-        // Build UI components FIRST
+
+        setPadding(new Insets(20));
+        setSpacing(15);
+
+        getStyleClass().add("panel-background");
+
         buildTitle();
         buildAlertsContainer();
-        showNoAlerts();           // safe to call now
-        
-        // Apply theme LAST – now alertsContainer exists
-        this.applyLightTheme();   // ← moved here
+
+        applyLightTheme();
     }
-    
+
+    // -------------------- Theme Methods --------------------
+
     public void applyLightTheme() {
-        this.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
-
-        if (titleLabel != null) {
-            titleLabel.setStyle("-fx-text-fill: #d32f2f;");
-        }
-
-        if (alertsContainer != null) {
-            alertsContainer.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 20;");
-        }
-
-        if (alertsScrollPane != null) {
-            alertsScrollPane.setStyle("-fx-control-inner-background: white;");
-        }
-
-        // Safe to call now
-        updateAlertCardsTheme(true);
+        ensureStylesheetOrder(THEME_LIGHT, THEME_DARK);
     }
 
     public void applyDarkTheme() {
-        this.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
-
-        if (titleLabel != null) {
-            titleLabel.setStyle("-fx-text-fill: #ff6b6b;");
-        }
-
-        if (alertsContainer != null) {
-            alertsContainer.setStyle("-fx-background-color: #333333; -fx-background-radius: 8; -fx-padding: 20;");
-        }
-
-        if (alertsScrollPane != null) {
-            alertsScrollPane.setStyle("-fx-control-inner-background: #333333;");
-        }
-
-        updateAlertCardsTheme(false);
+        ensureStylesheetOrder(THEME_DARK, THEME_LIGHT);
     }
 
-    /**
-     * Helper method to update alert cards theme
-     */
-    private void updateAlertCardsTheme(boolean isLight) {
-        if (alertsContainer == null) {
-            return;  // prevent NPE if called too early (extra safety)
-        }
+    private void ensureStylesheetOrder(String primary, String secondary) {
+        Scene scene = getScene();
+        if (scene == null) return;
 
-        String bgColor, borderColor, textColor;
+        String primaryUrl = getClass().getResource(primary) != null ? getClass().getResource(primary).toExternalForm() : null;
+        String secondaryUrl = getClass().getResource(secondary) != null ? getClass().getResource(secondary).toExternalForm() : null;
 
-        if (isLight) {
-            bgColor = "white";
-            borderColor = "#ccc";
-            textColor = "#333";
-        } else {
-            bgColor = "#3a3a3a";
-            borderColor = "#555555";
-            textColor = "#e0e0e0";
-        }
+        if (primaryUrl == null || secondaryUrl == null) return;
 
-        for (javafx.scene.Node node : alertsContainer.getChildren()) {
-            if (node instanceof VBox card) {
-                // Skip loading/placeholder boxes
-                if (!card.getChildren().isEmpty() && card.getChildren().get(0) instanceof Label firstLabel) {
-                    String text = firstLabel.getText();
-                    if ("No active weather alerts".equals(text) || text.contains("Loading")) {
-                        firstLabel.setStyle("-fx-text-fill: " + (isLight ? "#999" : "#b0b0b0") + "; -fx-font-size: 14px;");
-                        continue;
-                    }
-                }
-
-                // Update card background
-                card.setStyle("-fx-background-color: " + bgColor + "; " +
-                              "-fx-background-radius: 6; " +
-                              "-fx-border-color: " + borderColor + "; " +
-                              "-fx-border-width: 1; " +
-                              "-fx-border-radius: 6;");
-
-                // Update text colors in all labels
-                for (javafx.scene.Node child : card.getChildren()) {
-                    if (child instanceof Label label) {
-                        label.setStyle("-fx-text-fill: " + textColor + ";");
-                    }
-                }
-            }
-        }
+        var stylesheets = scene.getStylesheets();
+        stylesheets.remove(primaryUrl);
+        stylesheets.remove(secondaryUrl);
+        stylesheets.add(secondaryUrl);
+        stylesheets.add(primaryUrl);
     }
-    
+
+    // -------------------- UI Build --------------------
+
     private void buildTitle() {
-        titleLabel = new Label("⚠ Weather Alerts");
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 22));
-        titleLabel.setStyle("-fx-text-fill: #d32f2f;");
-        this.getChildren().add(titleLabel);
+        titleLabel = new Label("Weather Alerts");
+        titleLabel.getStyleClass().add("section-title");
+        getChildren().add(titleLabel);
     }
-    
+
     private void buildAlertsContainer() {
-        alertsContainer = new VBox(12);
-        alertsContainer.setStyle("-fx-background-color: white; " +
-                                 "-fx-background-radius: 8; " +
-                                 "-fx-padding: 20;");
-        
+        containerBox = new VBox(10);
+        containerBox.setPadding(new Insets(20));
+        containerBox.getStyleClass().add("panel-content");
+
+        alertsContainer = new VBox(10);
+        alertsContainer.setAlignment(Pos.TOP_LEFT);
+
         loadingIndicator = new ProgressIndicator();
         loadingIndicator.setMaxSize(40, 40);
-        
-        alertsScrollPane = new ScrollPane(alertsContainer);
-        alertsScrollPane.setFitToWidth(true);
-        alertsScrollPane.setPrefHeight(200);
-        alertsScrollPane.setStyle("-fx-control-inner-background: white;");
-        
-        this.getChildren().add(alertsScrollPane);
+
+        containerBox.getChildren().add(alertsContainer);
+        getChildren().add(containerBox);
+
+        showLoading();
     }
-    
-    private void showNoAlerts() {
-        alertsContainer.getChildren().clear();
-        Label noAlertsLabel = new Label("No active weather alerts");
-        noAlertsLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 14px;");
-        noAlertsLabel.setAlignment(Pos.CENTER);
-        VBox placeholderBox = new VBox(noAlertsLabel);
-        placeholderBox.setAlignment(Pos.CENTER);
-        placeholderBox.setPrefHeight(150);
-        alertsContainer.getChildren().add(placeholderBox);
-    }
-    
+
+    // -------------------- Data Load --------------------
+
     public void loadAlerts(String cityName) {
+        showLoading();
+
+        alertService.getAlertsAsync(cityName)
+            .thenAccept(alerts -> Platform.runLater(() -> {
+                if (alerts == null || alerts.isEmpty()) {
+                    showNoAlerts();
+                } else {
+                    showAlerts(alerts);
+                }
+            }));
+    }
+
+    // -------------------- Rendering --------------------
+
+    private void showLoading() {
         Platform.runLater(() -> {
             alertsContainer.getChildren().clear();
-            VBox loadingBox = new VBox(loadingIndicator);
+
+            VBox loadingBox = new VBox(10);
             loadingBox.setAlignment(Pos.CENTER);
-            loadingBox.setPrefHeight(100);
+            loadingBox.setPadding(new Insets(10));
+
+            Label loadingLabel = new Label("Loading...");
+            loadingLabel.getStyleClass().add("label-subtle");
+
+            loadingBox.getChildren().addAll(loadingIndicator, loadingLabel);
             alertsContainer.getChildren().add(loadingBox);
         });
-        
-        alertService.getAlertsAsync(cityName).thenAccept(alerts -> {
-            Platform.runLater(() -> {
-                alertsContainer.getChildren().clear();
-                
-                if (alerts != null && !alerts.isEmpty()) {
-                    displayAlerts(alerts);
-                } else {
-                    showNoAlerts();
-                }
-            });
-        });
     }
-    
-    private void displayAlerts(List<Alert> alerts) {
+
+    private void showNoAlerts() {
+        alertsContainer.getChildren().clear();
+
+        Label none = new Label("No active alerts.");
+        none.getStyleClass().add("label-subtle");
+
+        alertsContainer.getChildren().add(none);
+    }
+
+    private void showAlerts(List<Alert> alerts) {
+        alertsContainer.getChildren().clear();
+
         for (Alert alert : alerts) {
-            VBox card = createAlertCard(alert);
-            alertsContainer.getChildren().add(card);
+            alertsContainer.getChildren().add(createAlertCard(alert));
         }
     }
-    
+
     private VBox createAlertCard(Alert alert) {
-        VBox card = new VBox(8);
-        card.setPadding(new Insets(15));
-        card.setSpacing(5);
-        
-        String severity = alert.getSeverity() != null ? alert.getSeverity() : "low";
-        String bgColor, borderColor, textColor;
-        
-        switch (severity.toLowerCase()) {
-            case "high":
-                bgColor = "#ffebee";
-                borderColor = "#d32f2f";
-                textColor = "#b71c1c";
-                break;
-            case "medium":
-                bgColor = "#fff3e0";
-                borderColor = "#f57c00";
-                textColor = "#e65100";
-                break;
-            default:
-                bgColor = "#e3f2fd";
-                borderColor = "#1976d2";
-                textColor = "#0d47a1";
+        VBox card = new VBox(6);
+        card.setPadding(new Insets(12));
+        card.getStyleClass().add("forecast-card");
+
+        // Severity styling via CSS classes
+        String severity = alert.getSeverity() != null ? alert.getSeverity().toLowerCase() : "low";
+        switch (severity) {
+            case "high" -> card.getStyleClass().add("alert-high");
+            case "medium" -> card.getStyleClass().add("alert-medium");
+            default -> card.getStyleClass().add("alert-low");
         }
-        
-        card.setStyle("-fx-background-color: " + bgColor + "; " +
-                     "-fx-border-color: " + borderColor + "; " +
-                     "-fx-border-width: 2; " +
-                     "-fx-border-radius: 6; " +
-                     "-fx-background-radius: 6;");
-        
-        Label titleLabel = new Label(alert.getTitle());
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
-        titleLabel.setStyle("-fx-text-fill: " + textColor + ";");
-        titleLabel.setWrapText(true);
-        
-        Label descLabel = new Label(alert.getDescription());
-        descLabel.setFont(Font.font("System", 12));
-        descLabel.setStyle("-fx-text-fill: " + textColor + ";");
-        descLabel.setWrapText(true);
-        
-        Label severityLabel = new Label("Severity: " + severity.toUpperCase());
-        severityLabel.setFont(Font.font("System", FontWeight.BOLD, 11));
-        severityLabel.setStyle("-fx-text-fill: " + textColor + ";");
-        
-        card.getChildren().addAll(titleLabel, descLabel, severityLabel);
-        
+
+        Label title = new Label(alert.getTitle() != null ? alert.getTitle() : "Alert");
+        title.getStyleClass().add("label-primary");
+
+        Label time = new Label("Issued: " + DateTimeUtil.formatDateTime(alert.getTimestamp()));
+        time.getStyleClass().add("label-subtle");
+
+        Label desc = new Label(alert.getDescription() != null ? alert.getDescription() : "");
+        desc.getStyleClass().add("label-secondary");
+        desc.setWrapText(true);
+
+        card.getChildren().addAll(title, time, desc);
         return card;
     }
 }

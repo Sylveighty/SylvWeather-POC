@@ -1,48 +1,34 @@
 # Roadmap
 
-This roadmap describes potential improvements for SylvWeather-POC while keeping the project aligned with its proof-of-concept scope.
+This roadmap outlines potential improvements for SylvWeather-POC while keeping the project aligned with proof-of-concept scope.
 
----
+## Short-Term Improvements (Planned)
 
-## Short-Term (Planned)
-
-- Replace in-source API key with a safer approach:
-  - environment variable (preferred)
-  - or local config file excluded from version control
-- Improve user-facing error messages (invalid city, network failures, missing API key)
+- Ensure API keys are not committed (use environment variables or local config excluded from git)
+- Improve error handling and user-facing feedback for:
+  - invalid city
+  - network failures
+  - missing API key
 - Add a small set of unit tests for:
   - JSON parsing
   - forecast grouping logic
-  - temperature conversions
-- Ensure repository hygiene:
-  - remove `bin/` and `.gradle/` from version control
-  - add proper `.gitignore` entries
+  - temperature conversion formatting
+- Reduce duplication in inline styles where practical (without changing UI behavior)
 
----
-
-## Medium-Term (Planned)
+## Medium-Term Enhancements (Planned)
 
 - Add request timeouts and clearer failure states in services
-- Implement optional lightweight caching (in-memory) to reduce repeated calls
-- Improve UI consistency:
-  - unify styling (optionally use `theme.css` / `theme-dark.css` consistently)
-  - reduce inline style duplication
-- Add basic CI checks:
-  - build
-  - run tests
+- Add lightweight caching (in-memory) to reduce repeated calls during a session
+- Improve theming consistency using CSS resources (`theme.css`, `theme-dark.css`)
+- Add basic CI checks (build + tests)
 
----
-
-## Long-Term (Exploratory Ideas)
+## Long-Term Vision (Exploratory)
 
 - Cross-platform packaging (e.g., `jpackage`)
-- More robust alerts support using an officially supported OpenWeather alerts feed (if available for the chosen plan/endpoints)
-- Offline-friendly mode (cached last-known results)
-- Accessibility improvements and keyboard navigation
-- Modularization for potential future portability to other platforms
-
----
+- More robust alert support using an officially supported alerts feed (depending on OpenWeather plan/endpoints)
+- Offline-friendly behavior using cached last-known results
+- Accessibility improvements (keyboard navigation, contrast checks)
 
 ## Scope Reminder
 
-SylvWeather-POC remains a learning-focused JavaFX proof-of-concept. The items above are optional enhancements and should not be interpreted as production readiness goals.
+SylvWeather-POC is a learning-focused JavaFX proof-of-concept. Roadmap items are optional enhancements and should not be interpreted as production readiness goals.

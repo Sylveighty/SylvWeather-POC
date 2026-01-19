@@ -1,3 +1,5 @@
+/* theme.css - Light Theme */
+
 /* Root styling */
 .root {
     -fx-font-family: "System";
@@ -19,20 +21,6 @@
 .panel-content {
     -fx-background-color: white;
     -fx-background-radius: 8;
-}
-
-/* Card styling */
-.forecast-card {
-    -fx-background-color: #fafafa;
-    -fx-background-radius: 8;
-    -fx-border-color: #e0e0e0;
-    -fx-border-width: 1;
-    -fx-padding: 15;
-}
-
-.forecast-card:hover {
-    -fx-background-color: #f0f0f0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
 }
 
 /* Typography */
@@ -61,6 +49,52 @@
 .label-subtle {
     -fx-font-size: 11;
     -fx-text-fill: #999;
+}
+
+/* Weather panel specific */
+.city-label {
+    -fx-font-size: 28;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.temperature-large {
+    -fx-font-size: 72;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.condition-label {
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666;
+}
+
+.description-label {
+    -fx-font-size: 16;
+    -fx-text-fill: #888;
+}
+
+.footer-label {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666;
+}
+
+.detail-title {
+    -fx-font-size: 12;
+    -fx-text-fill: #999;
+}
+
+.detail-value {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.weather-icon {
+    -fx-font-size: 80px;
+    -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
 }
 
 /* Temperature coloring */
@@ -98,6 +132,30 @@
     -fx-background-color: #0d47a1;
 }
 
+/* Small pill buttons (top-right toggles) */
+.pill-button {
+    -fx-font-size: 13;
+    -fx-padding: 10 18;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+}
+
+/* Favorites button variants */
+.favorite-add {
+    -fx-background-color: #FF9800;
+}
+
+.favorite-remove {
+    -fx-background-color: #F44336;
+}
+
+/* Search button */
+.search-button {
+    -fx-background-color: #4CAF50;
+}
+
 /* Text field styling */
 .text-field {
     -fx-padding: 10;
@@ -117,6 +175,20 @@
 /* Progress indicator */
 .progress-indicator {
     -fx-progress-color: #1976d2;
+}
+
+/* Forecast cards */
+.forecast-card {
+    -fx-background-color: #fafafa;
+    -fx-background-radius: 8;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-padding: 15;
+}
+
+.forecast-card:hover {
+    -fx-background-color: #f0f0f0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
 }
 
 /* Scroll pane */
@@ -158,15 +230,4 @@
 /* Loading state */
 .loading {
     -fx-opacity: 0.6;
-}
-
-/* Transitions and effects */
-@keyframes fadeIn {
-    from { -fx-opacity: 0; }
-    to { -fx-opacity: 1; }
-}
-
-@keyframes slideIn {
-    from { -fx-translate-y: 10; -fx-opacity: 0; }
-    to { -fx-translate-y: 0; -fx-opacity: 1; }
 }

@@ -17,33 +17,24 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * AlertService - Service for fetching weather alerts
- * 
- * @author Weather App Team
- * @version 1.0 (Phase 3)
+ * AlertService - Fetches weather alerts for a city.
+ *
+ * POC behavior:
+ * - Attempts to retrieve alerts using a geocoding step (city -> lat/lon).
+ * - Then attempts an alerts-capable endpoint.
+ * - If the API path is unavailable or fails, returns simulated alerts so the UI can demonstrate the feature.
+ *
+ * This keeps the app demo-friendly even when alert data is not available for a location or plan.
  */
 public class AlertService {
-    
-    // ==================== Fields ====================
+
+    private static final String OPENWEATHER_BASE_URL = "https://api.openweathermap.org";
     private final HttpClient httpClient;
-    
-    // ==================== Constructors ====================
-    
-    /**
-     * Constructor - initializes HTTP client
-     */
+
     public AlertService() {
         this.httpClient = HttpClient.newHttpClient();
     }
-    
-    // ==================== Public Methods ====================
-    
-    /**
-     * Fetch weather alerts for a city (asynchronous)
-     * 
-     * @param cityName Name of the city
-     * @return CompletableFuture containing list of Alert objects
-     */
+
     public CompletableFuture<List<Alert>> getAlertsAsync(String cityName) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -54,195 +45,151 @@ public class AlertService {
             }
         });
     }
-    
-    /**
-     * Fetch weather alerts for a city (synchronous)
-     * 
-     * @param cityName Name of the city
-     * @return List of Alert objects
-     * @throws Exception if API call fails
-     */
-    public List<Alert> getAlerts(String cityName) throws Exception {
+
+    public List<Alert> getAlerts(String cityName) {
         try {
-            return fetchFromAPI(cityName);
+            List<Alert> fromApi = fetchFromApi(cityName);
+            if (!fromApi.isEmpty()) {
+                return fromApi;
+            }
         } catch (Exception e) {
-            System.out.println("Alert API unavailable, using simulated data");
-            return getSimulatedAlerts();
+            System.out.println("Alert API unavailable, using simulated alerts.");
         }
+        return getSimulatedAlerts();
     }
-    
-    // ==================== Private Methods ====================
-    
-    /**
-     * Fetch from OpenWeatherMap alerts API
-     * 
-     * @param cityName Name of the city to fetch alerts for
-     * @return List of alerts from the API
-     * @throws Exception if API call fails
-     */
-    private List<Alert> fetchFromAPI(String cityName) throws Exception {
-        // Step 1: Get coordinates for the city
-        double[] coordinates = getCityCoordinates(cityName);
-        if (coordinates == null) {
+
+    private List<Alert> fetchFromApi(String cityName) throws Exception {
+        double[] coords = getCityCoordinates(cityName);
+        if (coords == null) {
             return new ArrayList<>();
         }
-        
-        // Step 2: Fetch alerts using coordinates
-        String alertUrl = buildAlertsApiUrl(coordinates[0], coordinates[1]);
-        HttpResponse<String> response = sendHttpRequest(alertUrl);
+
+        // Attempt an alerts-capable endpoint.
+        // Note: OpenWeather "alerts" are commonly provided via One Call API responses.
+        String url = buildOneCallUrl(coords[0], coords[1]);
+
+        HttpResponse<String> response = sendHttpRequest(url);
         validateApiResponse(response);
-        
+
         return parseAlertsResponse(response.body());
     }
-    
+
     /**
-     * Get city coordinates using geocoding API
-     * 
-     * @param cityName Name of the city
-     * @return Array containing [latitude, longitude] or null if not found
-     * @throws Exception if API call fails
+     * Uses the OpenWeather Geocoding API:
+     * GET /geo/1.0/direct?q={city}&limit=1&appid={key}
      */
     private double[] getCityCoordinates(String cityName) throws Exception {
         String encodedCity = URLEncoder.encode(cityName, StandardCharsets.UTF_8);
-        String geoUrl = String.format("%s/geo/1.0/direct?q=%s&limit=1&appid=%s",
-            AppConfig.WEATHER_API_BASE_URL.replace("/data/2.5", ""),
+        String geoUrl = String.format(
+            "%s/geo/1.0/direct?q=%s&limit=1&appid=%s",
+            OPENWEATHER_BASE_URL,
             encodedCity,
             AppConfig.WEATHER_API_KEY
         );
-        
-        HttpRequest geoRequest = HttpRequest.newBuilder()
+
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(geoUrl))
             .GET()
             .build();
-        
-        HttpResponse<String> geoResponse = httpClient.send(geoRequest, 
-            HttpResponse.BodyHandlers.ofString());
-        
-        if (geoResponse.statusCode() != 200) {
-            return null;
-        }
-        
-        JsonArray geoArray = JsonParser.parseString(geoResponse.body()).getAsJsonArray();
-        if (geoArray.size() == 0) {
-            return null;
-        }
-        
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) return null;
+
+        JsonArray geoArray = JsonParser.parseString(response.body()).getAsJsonArray();
+        if (geoArray.size() == 0) return null;
+
         JsonObject geoData = geoArray.get(0).getAsJsonObject();
         double lat = geoData.get("lat").getAsDouble();
         double lon = geoData.get("lon").getAsDouble();
-        
+
         return new double[]{lat, lon};
     }
-    
+
     /**
-     * Build the alerts API URL using coordinates
-     * 
-     * @param lat Latitude
-     * @param lon Longitude
-     * @return Complete API URL string
+     * One Call (alerts-capable) request.
+     * We exclude other blocks to keep response smaller (POC).
+     *
+     * Note: Alerts availability may depend on API plan/region.
      */
-    private String buildAlertsApiUrl(double lat, double lon) {
-        return String.format("%s/data/2.5/alerts?lat=%f&lon=%f&appid=%s",
-            AppConfig.WEATHER_API_BASE_URL.replace("/data/2.5", ""),
+    private String buildOneCallUrl(double lat, double lon) {
+        return String.format(
+            "%s/data/3.0/onecall?lat=%f&lon=%f&exclude=current,minutely,hourly,daily&appid=%s",
+            OPENWEATHER_BASE_URL,
             lat, lon,
             AppConfig.WEATHER_API_KEY
         );
     }
-    
-    /**
-     * Send HTTP request to the API
-     * 
-     * @param url API URL to send request to
-     * @return HTTP response
-     * @throws Exception if request fails
-     */
+
     private HttpResponse<String> sendHttpRequest(String url) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .GET()
             .build();
-        
+
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
-    
-    /**
-     * Validate that the API response was successful
-     * 
-     * @param response HTTP response from API
-     * @throws Exception if response indicates an error
-     */
+
     private void validateApiResponse(HttpResponse<String> response) throws Exception {
         if (response.statusCode() != 200) {
             throw new Exception("API returned status code: " + response.statusCode());
         }
     }
-    
+
     /**
-     * Parse JSON response into Alert objects
-     * 
-     * @param jsonResponse JSON string from API
-     * @return List of Alert objects
+     * Expected JSON: { "alerts": [ ... ] }
+     * If "alerts" is missing, returns an empty list (caller may fall back to simulated alerts).
      */
     private List<Alert> parseAlertsResponse(String jsonResponse) {
         List<Alert> alerts = new ArrayList<>();
-        
+
         try {
             JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
-            
             if (!json.has("alerts")) {
                 return alerts;
             }
-            
+
             JsonArray alertsArray = json.getAsJsonArray("alerts");
-            
             for (int i = 0; i < alertsArray.size(); i++) {
                 JsonObject alertJson = alertsArray.get(i).getAsJsonObject();
-                Alert alert = createAlertFromJson(alertJson);
-                alerts.add(alert);
+                alerts.add(createAlertFromJson(alertJson));
             }
         } catch (Exception e) {
             System.err.println("Error parsing alerts: " + e.getMessage());
         }
-        
+
         return alerts;
     }
-    
-    /**
-     * Create an Alert object from JSON data
-     * 
-     * @param alertJson JSON object representing an alert
-     * @return Alert object populated with data
-     */
+
     private Alert createAlertFromJson(JsonObject alertJson) {
         Alert alert = new Alert();
-        
-        // Set basic alert properties
-        alert.setId(alertJson.has("event") ? alertJson.get("event").getAsString() : "unknown");
-        alert.setTitle(alertJson.has("event") ? alertJson.get("event").getAsString() : "Weather Alert");
-        alert.setDescription(alertJson.has("description") ? alertJson.get("description").getAsString() : "");
-        alert.setTimestamp(alertJson.has("start") ? alertJson.get("start").getAsLong() : System.currentTimeMillis() / 1000);
-        
-        // Determine severity based on alert type
-        String event = alert.getTitle().toLowerCase();
-        if (event.contains("warning") || event.contains("severe")) {
+
+        String event = alertJson.has("event") ? alertJson.get("event").getAsString() : "Weather Alert";
+        String description = alertJson.has("description") ? alertJson.get("description").getAsString() : "";
+
+        alert.setId(event);
+        alert.setTitle(event);
+        alert.setDescription(description);
+        alert.setTimestamp(alertJson.has("start") ? alertJson.get("start").getAsLong() : (System.currentTimeMillis() / 1000));
+
+        // Simple severity heuristic (POC)
+        String lower = event.toLowerCase();
+        if (lower.contains("warning") || lower.contains("severe")) {
             alert.setSeverity("high");
-        } else if (event.contains("watch")) {
+        } else if (lower.contains("watch")) {
             alert.setSeverity("medium");
         } else {
             alert.setSeverity("low");
         }
-        
+
         return alert;
     }
-    
+
     /**
-     * Simulated alerts for demo/testing
-     * 
-     * @return List of simulated alert objects
+     * Simulated alerts for demo/testing when live alerts are unavailable.
      */
     private List<Alert> getSimulatedAlerts() {
         List<Alert> alerts = new ArrayList<>();
-        
+
         Alert alert1 = new Alert();
         alert1.setId("alert-001");
         alert1.setTitle("Moderate Wind Advisory");
@@ -250,7 +197,7 @@ public class AlertService {
         alert1.setSeverity("medium");
         alert1.setTimestamp(System.currentTimeMillis() / 1000);
         alerts.add(alert1);
-        
+
         return alerts;
     }
 }

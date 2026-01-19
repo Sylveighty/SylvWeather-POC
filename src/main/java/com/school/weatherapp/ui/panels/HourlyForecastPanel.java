@@ -2,174 +2,152 @@ package com.school.weatherapp.ui.panels;
 
 import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
+import com.school.weatherapp.util.TemperatureUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+
 import java.util.List;
 
 /**
- * HourlyForecastPanel - UI panel displaying hourly weather forecast
- * 
- * Shows a horizontal row of hourly forecast cards with:
- * - Time
+ * HourlyForecastPanel - UI panel displaying an hourly forecast strip.
+ *
+ * Shows a horizontal row of forecast "cards" with:
+ * - Time label
  * - Weather icon
  * - Temperature
- * - Precipitation chance
- * 
- * @author Weather App Team
- * @version 1.1 (Centered Layout)
+ * - Optional precipitation chance
+ *
+ * Styling is handled via theme.css / theme-dark.css.
  */
 public class HourlyForecastPanel extends VBox {
 
-    // ==================== Fields ====================
+    private static final String THEME_LIGHT = "/theme.css";
+    private static final String THEME_DARK = "/theme-dark.css";
+
     private final ForecastService forecastService;
-    private HBox forecastCardsContainer;
-    private ProgressIndicator loadingIndicator;
+
     private Label titleLabel;
+    private HBox forecastCardsContainer;
+    private VBox containerBox;
+
+    private ProgressIndicator loadingIndicator;
     private List<Forecast> currentForecasts;
 
-    // ==================== Constructors ====================
     public HourlyForecastPanel() {
         this.forecastService = new ForecastService();
-        
+
         setPadding(new Insets(20));
         setSpacing(15);
-        
+
+        // Panel styling
+        getStyleClass().add("panel-background");
+
         buildTitle();
         buildForecastContainer();
+
         applyLightTheme();
     }
 
+    // -------------------- Theme Methods --------------------
+
     public void applyLightTheme() {
-        setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
-
-        if (titleLabel != null) {
-            titleLabel.setStyle("-fx-text-fill: #333;");
-        }
-
-        if (forecastCardsContainer != null) {
-            forecastCardsContainer.setStyle(
-                "-fx-background-color: white; " +
-                "-fx-background-radius: 8; " +
-                "-fx-padding: 20;"
-            );
-        }
-
-        updateForecastCardsTheme("#333", "#fafafa", "#f0f0f0", "#e0e0e0");
+        ensureStylesheetOrder(THEME_LIGHT, THEME_DARK);
     }
 
     public void applyDarkTheme() {
-        setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 10;");
-
-        if (titleLabel != null) {
-            titleLabel.setStyle("-fx-text-fill: #e0e0e0;");
-        }
-
-        if (forecastCardsContainer != null) {
-            forecastCardsContainer.setStyle(
-                "-fx-background-color: #333; " +
-                "-fx-background-radius: 8; " +
-                "-fx-padding: 20;"
-            );
-        }
-
-        updateForecastCardsTheme("#e0e0e0", "#3a3a3a", "#444", "#555");
+        ensureStylesheetOrder(THEME_DARK, THEME_LIGHT);
     }
 
-    private void updateForecastCardsTheme(String textColor, String cardBg, String hoverBg, String borderColor) {
-        if (forecastCardsContainer == null) return;
+    private void ensureStylesheetOrder(String primary, String secondary) {
+        Scene scene = getScene();
+        if (scene == null) return;
 
-        for (Node node : forecastCardsContainer.getChildren()) {
-            if (!(node instanceof VBox card)) continue;
+        String primaryUrl = getClass().getResource(primary) != null ? getClass().getResource(primary).toExternalForm() : null;
+        String secondaryUrl = getClass().getResource(secondary) != null ? getClass().getResource(secondary).toExternalForm() : null;
 
-            card.setStyle(
-                "-fx-background-color: " + cardBg + ";" +
-                "-fx-background-radius: 8;" +
-                "-fx-border-color: " + borderColor + ";" +
-                "-fx-border-radius: 8;" +
-                "-fx-border-width: 1;"
-            );
+        if (primaryUrl == null || secondaryUrl == null) return;
 
-            for (Node child : card.getChildren()) {
-                if (child instanceof Label label) {
-                    label.setStyle("-fx-text-fill: " + textColor + ";");
-                }
-            }
-
-            card.setOnMouseEntered(e -> card.setStyle(
-                "-fx-background-color: " + hoverBg + ";" +
-                "-fx-background-radius: 8;" +
-                "-fx-border-color: " + borderColor + ";" +
-                "-fx-border-radius: 8;" +
-                "-fx-border-width: 1;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);"
-            ));
-
-            card.setOnMouseExited(e -> card.setStyle(
-                "-fx-background-color: " + cardBg + ";" +
-                "-fx-background-radius: 8;" +
-                "-fx-border-color: " + borderColor + ";" +
-                "-fx-border-radius: 8;" +
-                "-fx-border-width: 1;"
-            ));
-        }
+        var stylesheets = scene.getStylesheets();
+        stylesheets.remove(primaryUrl);
+        stylesheets.remove(secondaryUrl);
+        stylesheets.add(secondaryUrl);
+        stylesheets.add(primaryUrl);
     }
+
+    // -------------------- UI Build --------------------
 
     private void buildTitle() {
         titleLabel = new Label("Hourly Forecast");
-        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 22));
+        titleLabel.getStyleClass().add("section-title");
         getChildren().add(titleLabel);
     }
 
     private void buildForecastContainer() {
+        // Inner container (background comes from CSS)
+        containerBox = new VBox();
+        containerBox.setPadding(new Insets(20));
+        containerBox.getStyleClass().add("panel-content");
+
         forecastCardsContainer = new HBox(12);
         forecastCardsContainer.setAlignment(Pos.CENTER);
 
         loadingIndicator = new ProgressIndicator();
         loadingIndicator.setMaxSize(40, 40);
 
-        VBox loadingBox = new VBox(loadingIndicator);
-        loadingBox.setAlignment(Pos.CENTER);
-        loadingBox.setPrefHeight(120);
+        containerBox.getChildren().add(forecastCardsContainer);
+        getChildren().add(containerBox);
 
-        forecastCardsContainer.getChildren().add(loadingBox);
-        getChildren().add(forecastCardsContainer);
+        showLoading();
     }
+
+    // -------------------- Data Load --------------------
 
     public void loadHourlyForecast(String cityName) {
-        Platform.runLater(() -> {
-            forecastCardsContainer.getChildren().clear();
-            VBox loadingBox = new VBox(loadingIndicator);
-            loadingBox.setAlignment(Pos.CENTER);
-            loadingBox.setPrefHeight(120);
-            forecastCardsContainer.getChildren().add(loadingBox);
-        });
+        showLoading();
 
         forecastService.getHourlyForecastAsync(cityName)
-            .thenAccept(forecasts ->
-                Platform.runLater(() -> {
-                    forecastCardsContainer.getChildren().clear();
-
-                    if (forecasts == null || forecasts.isEmpty()) {
-                        showError();
-                    } else {
-                        displayForecasts(forecasts);
-                    }
-                })
-            );
+            .thenAccept(forecasts -> Platform.runLater(() -> {
+                if (forecasts == null || forecasts.isEmpty()) {
+                    showError();
+                } else {
+                    currentForecasts = forecasts;
+                    refreshForecastCards(false); // default if MainApp hasn't toggled yet
+                }
+            }));
     }
 
-    private void displayForecasts(List<Forecast> forecasts) {
-        currentForecasts = forecasts;
-        refreshForecastCards(false); // Default to false (Celsius) initially
+    // -------------------- Rendering --------------------
+
+    private void showLoading() {
+        Platform.runLater(() -> {
+            forecastCardsContainer.getChildren().clear();
+
+            VBox loadingBox = new VBox(10);
+            loadingBox.setAlignment(Pos.CENTER);
+            loadingBox.setPrefHeight(120);
+
+            Label loadingLabel = new Label("Loading...");
+            loadingLabel.getStyleClass().add("label-subtle");
+
+            loadingBox.getChildren().addAll(loadingIndicator, loadingLabel);
+            forecastCardsContainer.getChildren().add(loadingBox);
+        });
+    }
+
+    private void showError() {
+        forecastCardsContainer.getChildren().clear();
+
+        Label error = new Label("Could not load forecast data");
+        error.getStyleClass().add("label-subtle");
+
+        forecastCardsContainer.getChildren().add(error);
     }
 
     private void refreshForecastCards(boolean isImperial) {
@@ -186,63 +164,51 @@ public class HourlyForecastPanel extends VBox {
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(12));
         card.setPrefWidth(90);
-        card.setStyle("-fx-background-color: #fafafa; " +
-                     "-fx-background-radius: 8; " +
-                     "-fx-border-color: #e0e0e0; " +
-                     "-fx-border-radius: 8; " +
-                     "-fx-border-width: 1;");
+
+        // Card styling comes from CSS (including hover effect)
+        card.getStyleClass().add("forecast-card");
 
         Label timeLabel = new Label(forecast.getTimeLabel());
-        timeLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
-        timeLabel.setStyle("-fx-text-fill: #333;");
+        timeLabel.getStyleClass().add("label-secondary");
 
         Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
-        icon.setStyle("-fx-font-size: 32px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
+        icon.getStyleClass().add("weather-icon");
+        icon.setStyle("-fx-font-size: 32px;"); // keep size local; the emoji font family is in CSS
 
         // Determine if conversion is needed
-        boolean needConversion = forecast.getTemperatureUnit() != null && 
-            ((forecast.getTemperatureUnit().equals("imperial") && !isImperial) ||
-             (forecast.getTemperatureUnit().equals("metric") && isImperial));
-        
-        // Convert temperature based on unit preference
+        boolean needConversion = forecast.getTemperatureUnit() != null &&
+            (("imperial".equalsIgnoreCase(forecast.getTemperatureUnit()) && !isImperial) ||
+             ("metric".equalsIgnoreCase(forecast.getTemperatureUnit()) && isImperial));
+
         double tempValue;
         if (needConversion) {
-            if (forecast.getTemperatureUnit().equals("imperial")) {
-                // Convert from Fahrenheit to Celsius
-                tempValue = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(forecast.getTemperature());
+            if ("imperial".equalsIgnoreCase(forecast.getTemperatureUnit())) {
+                tempValue = TemperatureUtil.fahrenheitToCelsius(forecast.getTemperature());
             } else {
-                // Convert from Celsius to Fahrenheit
-                tempValue = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTemperature());
+                tempValue = TemperatureUtil.celsiusToFahrenheit(forecast.getTemperature());
             }
         } else {
-            // No conversion needed, use original value
             tempValue = forecast.getTemperature();
         }
+
         String unit = isImperial ? "°F" : "°C";
         Label tempLabel = new Label(String.format("%.0f%s", tempValue, unit));
-        tempLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
-        tempLabel.setStyle("-fx-text-fill: #333;");
+        tempLabel.getStyleClass().add("label-primary");
 
         card.getChildren().addAll(timeLabel, icon, tempLabel);
 
         if (forecast.getPrecipitation() > 0) {
             Label precip = new Label(forecast.getPrecipitation() + "%");
-            precip.setFont(Font.font("System", 11));
-            precip.setStyle("-fx-text-fill: #1976d2;");
+            // Use subtle label; the theme controls text color
+            precip.getStyleClass().add("label-subtle");
             card.getChildren().add(precip);
         }
 
         return card;
     }
 
-    private void showError() {
-        Label error = new Label("Could not load forecast data");
-        error.setStyle("-fx-text-fill: #999; -fx-font-size: 14px;");
-        forecastCardsContainer.getChildren().add(error);
-    }
-
     /**
-     * Refresh temperature displays with the specified unit system
+     * Refresh temperature displays with the specified unit system.
      *
      * @param isImperial true for Fahrenheit, false for Celsius
      */
@@ -251,6 +217,7 @@ public class HourlyForecastPanel extends VBox {
     }
 
     private String getWeatherEmoji(String condition) {
+        if (condition == null) return "◐";
         return switch (condition.toLowerCase()) {
             case "clear" -> "☀";
             case "clouds" -> "☁";
