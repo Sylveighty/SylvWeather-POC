@@ -10,6 +10,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
@@ -39,17 +40,34 @@ public class MainApp extends Application {
     private BorderPane root;
     private ScrollPane scrollPane;
     private boolean darkThemeEnabled = false;
+    private boolean isImperial = true; // Start with imperial (Fahrenheit) to match AppConfig default
     
     @Override
     public void start(Stage primaryStage) {
         root = new BorderPane();
         root.setStyle("-fx-background-color: #e8eaf6;");
         
-        // Top bar with theme toggle
-        HBox topBar = new HBox();
+        // Top bar with theme toggle and unit switcher
+        HBox topBar = new HBox(10);
         topBar.setAlignment(Pos.TOP_RIGHT);
         topBar.setPadding(new Insets(10, 20, 0, 0));
         
+        // Temperature unit toggle
+        Button unitToggle = new Button("°F");
+        unitToggle.setStyle("-fx-font-size: 13; -fx-padding: 10 18; " +
+                           "-fx-background-color: #2196F3; -fx-text-fill: white; " +
+                           "-fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;");
+        unitToggle.setOnAction(e -> {
+            // Toggle between imperial and metric
+            isImperial = !isImperial;
+            unitToggle.setText(isImperial ? "°F" : "°C");
+            showUnitChangeMessage(isImperial ? "Fahrenheit" : "Celsius");
+
+            // Refresh all panels to display temperatures in new units
+            refreshAllTemperatures();
+        });
+        
+        // Theme toggle
         Button themeToggle = new Button("🌙 Dark");
         themeToggle.setStyle("-fx-font-size: 13; -fx-padding: 10 18; " +
                             "-fx-background-color: #1976d2; -fx-text-fill: white; " +
@@ -63,7 +81,7 @@ public class MainApp extends Application {
                                 "-fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;");
         });
         
-        topBar.getChildren().add(themeToggle);
+        topBar.getChildren().addAll(unitToggle, themeToggle);
         root.setTop(topBar);
         
         // Create panels
@@ -167,7 +185,32 @@ public class MainApp extends Application {
         dailyForecastPanel.loadDailyForecast(cityName);
         alertPanel.loadAlerts(cityName);
     }
-    
+
+    /**
+     * Refresh all temperature displays with the current unit setting
+     */
+    private void refreshAllTemperatures() {
+        // Refresh current weather panel
+        currentWeatherPanel.refreshTemperatures(isImperial);
+
+        // Refresh forecast panels
+        hourlyForecastPanel.refreshTemperatures(isImperial);
+        dailyForecastPanel.refreshTemperatures(isImperial);
+    }
+
+    /**
+     * Show a message when temperature units are changed
+     *
+     * @param newUnit The new temperature unit system (Celsius or Fahrenheit)
+     */
+    private void showUnitChangeMessage(String newUnit) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Unit Changed");
+        alert.setHeaderText("Temperature Units Updated");
+        alert.setContentText("Temperature units have been switched to " + newUnit + ".");
+        alert.showAndWait();
+    }
+
     public static void main(String[] args) {
         launch(args);
     }

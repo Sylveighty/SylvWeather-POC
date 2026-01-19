@@ -1,6 +1,5 @@
 package com.school.weatherapp.ui.panels;
 
-import com.school.weatherapp.config.AppConfig;
 import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
 import javafx.application.Platform;
@@ -29,11 +28,12 @@ import java.util.List;
  * @version 1.0 (Phase 2)
  */
 public class DailyForecastPanel extends VBox {
-    
+
     private final ForecastService forecastService;
     private HBox forecastCardsContainer;
     private ProgressIndicator loadingIndicator;
     private Label titleLabel;
+    private List<Forecast> currentForecasts;
     
     /**
      * Constructor - builds the UI panel
@@ -175,13 +175,21 @@ public class DailyForecastPanel extends VBox {
     }
     
     private void displayForecasts(List<Forecast> forecasts) {
-        for (Forecast forecast : forecasts) {
-            VBox card = createForecastCard(forecast);
+        currentForecasts = forecasts;
+        refreshForecastCards(false); // Default to false (Celsius) initially
+    }
+
+    private void refreshForecastCards(boolean isImperial) {
+        if (currentForecasts == null) return;
+
+        forecastCardsContainer.getChildren().clear();
+        for (Forecast forecast : currentForecasts) {
+            VBox card = createForecastCard(forecast, isImperial);
             forecastCardsContainer.getChildren().add(card);
         }
     }
     
-    private VBox createForecastCard(Forecast forecast) {
+    private VBox createForecastCard(Forecast forecast, boolean isImperial) {
         VBox card = new VBox(8);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(15, 20, 15, 20));
@@ -191,32 +199,40 @@ public class DailyForecastPanel extends VBox {
                      "-fx-border-radius: 8; " +
                      "-fx-border-width: 1;");
         card.setPrefWidth(110);
-        
+
         Label dayLabel = new Label(forecast.getTimeLabel());
         dayLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
         dayLabel.setStyle("-fx-text-fill: #333;");
-        
+
         Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
         icon.setStyle("-fx-font-size: 36px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
-        
-        String tempUnit = AppConfig.TEMPERATURE_UNIT.equals("imperial") ? "°F" : "°C";
-        Label highLabel = new Label(String.format("%.0f%s", forecast.getTempMax(), tempUnit));
+
+        // Convert temperatures based on unit preference
+        double highTemp = isImperial ?
+            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTempMax()) :
+            forecast.getTempMax();
+        double lowTemp = isImperial ?
+            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTempMin()) :
+            forecast.getTempMin();
+        String tempUnit = isImperial ? "°F" : "°C";
+
+        Label highLabel = new Label(String.format("%.0f%s", highTemp, tempUnit));
         highLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
         highLabel.setStyle("-fx-text-fill: #d32f2f;");
-        
-        Label lowLabel = new Label(String.format("%.0f%s", forecast.getTempMin(), tempUnit));
+
+        Label lowLabel = new Label(String.format("%.0f%s", lowTemp, tempUnit));
         lowLabel.setFont(Font.font("System", 14));
         lowLabel.setStyle("-fx-text-fill: #1976d2;");
-        
+
         Label conditionLabel = new Label(forecast.getCondition());
         conditionLabel.setFont(Font.font("System", 11));
         conditionLabel.setStyle("-fx-text-fill: #666;");
         conditionLabel.setWrapText(true);
         conditionLabel.setMaxWidth(100);
         conditionLabel.setAlignment(Pos.CENTER);
-        
+
         card.getChildren().addAll(dayLabel, icon, highLabel, lowLabel, conditionLabel);
-        
+
         // Hover effect
         card.setOnMouseEntered(e -> card.setStyle(
             "-fx-background-color: #f0f0f0; " +
@@ -226,7 +242,7 @@ public class DailyForecastPanel extends VBox {
             "-fx-border-width: 1; " +
             "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);"
         ));
-        
+
         card.setOnMouseExited(e -> card.setStyle(
             "-fx-background-color: #fafafa; " +
             "-fx-background-radius: 8; " +
@@ -234,7 +250,7 @@ public class DailyForecastPanel extends VBox {
             "-fx-border-radius: 8; " +
             "-fx-border-width: 1;"
         ));
-        
+
         return card;
     }
     
@@ -244,6 +260,15 @@ public class DailyForecastPanel extends VBox {
         forecastCardsContainer.getChildren().add(errorLabel);
     }
     
+    /**
+     * Refresh temperature displays with the specified unit system
+     *
+     * @param isImperial true for Fahrenheit, false for Celsius
+     */
+    public void refreshTemperatures(boolean isImperial) {
+        refreshForecastCards(isImperial);
+    }
+
     private String getWeatherEmoji(String condition) {
         return switch (condition.toLowerCase()) {
             case "clear"        -> "☀";

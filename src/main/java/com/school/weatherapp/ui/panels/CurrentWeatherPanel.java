@@ -576,4 +576,44 @@ public class CurrentWeatherPanel extends VBox {
     public void loadCityWeather(String cityName) {
         loadWeather(cityName);
     }
+
+    /**
+     * Refresh temperature displays with the specified unit system
+     *
+     * @param isImperial true for Fahrenheit, false for Celsius
+     */
+    public void refreshTemperatures(boolean isImperial) {
+        if (currentWeather != null) {
+            updateDisplayWithUnit(currentWeather, isImperial);
+        }
+    }
+
+    /**
+     * Update UI with weather data using specified temperature unit
+     *
+     * @param weather The weather data to display
+     * @param isImperial true for Fahrenheit, false for Celsius
+     */
+    private void updateDisplayWithUnit(Weather weather, boolean isImperial) {
+        // Update temperature
+        double tempValue = isImperial ?
+            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getTemperature()) :
+            weather.getTemperature();
+        String tempUnit = isImperial ? "°F" : "°C";
+        temperatureLabel.setText(String.format("%.0f%s", tempValue, tempUnit));
+
+        // Update feels like
+        double feelsLikeValue = isImperial ?
+            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getFeelsLike()) :
+            weather.getFeelsLike();
+        feelsLikeLabel.setText(String.format("%.0f%s", feelsLikeValue, tempUnit));
+
+        // Update wind speed unit
+        String windUnit = isImperial ? "mph" : "m/s";
+        double windSpeedValue = isImperial ?
+            weather.getWindSpeed() * 2.237 : // Convert m/s to mph
+            weather.getWindSpeed();
+        windLabel.setText(String.format("%.1f %s %s",
+            windSpeedValue, windUnit, weather.getWindDirectionCompass()));
+    }
 }

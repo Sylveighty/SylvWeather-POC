@@ -1,6 +1,5 @@
 package com.school.weatherapp.ui.panels;
 
-import com.school.weatherapp.config.AppConfig;
 import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
 import javafx.application.Platform;
@@ -35,6 +34,7 @@ public class HourlyForecastPanel extends VBox {
     private HBox forecastCardsContainer;
     private ProgressIndicator loadingIndicator;
     private Label titleLabel;
+    private List<Forecast> currentForecasts;
 
     public HourlyForecastPanel() {
         this.forecastService = new ForecastService();
@@ -167,12 +167,20 @@ public class HourlyForecastPanel extends VBox {
     }
 
     private void displayForecasts(List<Forecast> forecasts) {
-        for (Forecast forecast : forecasts) {
-            forecastCardsContainer.getChildren().add(createForecastCard(forecast));
+        currentForecasts = forecasts;
+        refreshForecastCards(false); // Default to false (Celsius) initially
+    }
+
+    private void refreshForecastCards(boolean isImperial) {
+        if (currentForecasts == null) return;
+
+        forecastCardsContainer.getChildren().clear();
+        for (Forecast forecast : currentForecasts) {
+            forecastCardsContainer.getChildren().add(createForecastCard(forecast, isImperial));
         }
     }
 
-    private VBox createForecastCard(Forecast forecast) {
+    private VBox createForecastCard(Forecast forecast, boolean isImperial) {
         VBox card = new VBox(6);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(12));
@@ -190,8 +198,12 @@ public class HourlyForecastPanel extends VBox {
         Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
         icon.setStyle("-fx-font-size: 32px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
 
-        String unit = AppConfig.TEMPERATURE_UNIT.equals("imperial") ? "°F" : "°C";
-        Label tempLabel = new Label(String.format("%.0f%s", forecast.getTemperature(), unit));
+        // Convert temperature based on unit preference
+        double tempValue = isImperial ?
+            com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(forecast.getTemperature()) :
+            forecast.getTemperature();
+        String unit = isImperial ? "°F" : "°C";
+        Label tempLabel = new Label(String.format("%.0f%s", tempValue, unit));
         tempLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
         tempLabel.setStyle("-fx-text-fill: #333;");
 
@@ -211,6 +223,15 @@ public class HourlyForecastPanel extends VBox {
         Label error = new Label("Could not load forecast data");
         error.setStyle("-fx-text-fill: #999; -fx-font-size: 14px;");
         forecastCardsContainer.getChildren().add(error);
+    }
+
+    /**
+     * Refresh temperature displays with the specified unit system
+     *
+     * @param isImperial true for Fahrenheit, false for Celsius
+     */
+    public void refreshTemperatures(boolean isImperial) {
+        refreshForecastCards(isImperial);
     }
 
     private String getWeatherEmoji(String condition) {
