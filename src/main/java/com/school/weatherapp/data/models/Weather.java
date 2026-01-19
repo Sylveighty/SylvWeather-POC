@@ -15,44 +15,48 @@ package com.school.weatherapp.data.models;
  */
 public class Weather {
     
-    // Location information
+    // ==================== Location Information ====================
     private String cityName;
     private String country;
     
-    // Temperature data (in Fahrenheit or Celsius based on config)
+    // ==================== Temperature Data ====================
     private double temperature;
     private double feelsLike;
-    
-    // Track the unit system this weather data was fetched with
-    private String temperatureUnit; // "imperial" or "metric"
     private double tempMin;
     private double tempMax;
     
-    // Weather condition
+    /** Track the unit system this weather data was fetched with ("imperial" or "metric") */
+    private String temperatureUnit;
+    
+    // ==================== Weather Conditions ====================
     private String condition;        // e.g., "Clear", "Clouds", "Rain"
     private String description;      // e.g., "clear sky", "light rain"
     private String iconCode;         // OpenWeatherMap icon code
     
-    // Atmospheric data
+    // ==================== Atmospheric Data ====================
     private int humidity;            // Percentage
     private int pressure;            // hPa
     private int cloudiness;          // Percentage
     
-    // Wind data
+    // ==================== Wind Data ====================
     private double windSpeed;        // mph or m/s
     private int windDirection;       // Degrees
     
-    // Additional data
+    // ==================== Additional Data ====================
     private int uvIndex;
     private double precipitation;    // mm
     private long timestamp;          // Unix timestamp
     
-    // Constructor
+    // ==================== Constructors ====================
+    
+    /**
+     * Default constructor - initializes timestamp to current time
+     */
     public Weather() {
         this.timestamp = System.currentTimeMillis() / 1000;
     }
     
-    // ============ Getters and Setters ============
+    // ==================== Getters and Setters ====================
     
     public String getCityName() {
         return cityName;
@@ -198,8 +202,12 @@ public class Weather {
         this.timestamp = timestamp;
     }
     
+    // ==================== Utility Methods ====================
+    
     /**
      * Get full location string (City, Country)
+     * 
+     * @return Formatted location string
      */
     public String getFullLocation() {
         return cityName + ", " + country;
@@ -207,6 +215,8 @@ public class Weather {
     
     /**
      * Get wind direction as compass direction (N, NE, E, etc.)
+     * 
+     * @return Compass direction string
      */
     public String getWindDirectionCompass() {
         String[] directions = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};

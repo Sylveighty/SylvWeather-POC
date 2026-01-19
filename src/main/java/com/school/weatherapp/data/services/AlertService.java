@@ -24,11 +24,19 @@ import java.util.concurrent.CompletableFuture;
  */
 public class AlertService {
     
+    // ==================== Fields ====================
     private final HttpClient httpClient;
     
+    // ==================== Constructors ====================
+    
+    /**
+     * Constructor - initializes HTTP client
+     */
     public AlertService() {
         this.httpClient = HttpClient.newHttpClient();
     }
+    
+    // ==================== Public Methods ====================
     
     /**
      * Fetch weather alerts for a city (asynchronous)
@@ -63,14 +71,39 @@ public class AlertService {
         }
     }
     
+    // ==================== Private Methods ====================
+    
     /**
      * Fetch from OpenWeatherMap alerts API
+     * 
+     * @param cityName Name of the city to fetch alerts for
+     * @return List of alerts from the API
+     * @throws Exception if API call fails
      */
     private List<Alert> fetchFromAPI(String cityName) throws Exception {
-        // Get coordinates first
-        String encodedCity = URLEncoder.encode(cityName, StandardCharsets.UTF_8);
+        // Step 1: Get coordinates for the city
+        double[] coordinates = getCityCoordinates(cityName);
+        if (coordinates == null) {
+            return new ArrayList<>();
+        }
         
-        // Step 1: Geocode city to get lat/lon
+        // Step 2: Fetch alerts using coordinates
+        String alertUrl = buildAlertsApiUrl(coordinates[0], coordinates[1]);
+        HttpResponse<String> response = sendHttpRequest(alertUrl);
+        validateApiResponse(response);
+        
+        return parseAlertsResponse(response.body());
+    }
+    
+    /**
+     * Get city coordinates using geocoding API
+     * 
+     * @param cityName Name of the city
+     * @return Array containing [latitude, longitude] or null if not found
+     * @throws Exception if API call fails
+     */
+    private double[] getCityCoordinates(String cityName) throws Exception {
+        String encodedCity = URLEncoder.encode(cityName, StandardCharsets.UTF_8);
         String geoUrl = String.format("%s/geo/1.0/direct?q=%s&limit=1&appid=%s",
             AppConfig.WEATHER_API_BASE_URL.replace("/data/2.5", ""),
             encodedCity,
@@ -86,59 +119,69 @@ public class AlertService {
             HttpResponse.BodyHandlers.ofString());
         
         if (geoResponse.statusCode() != 200) {
-            return new ArrayList<>();
+            return null;
         }
         
         JsonArray geoArray = JsonParser.parseString(geoResponse.body()).getAsJsonArray();
         if (geoArray.size() == 0) {
-            return new ArrayList<>();
+            return null;
         }
         
         JsonObject geoData = geoArray.get(0).getAsJsonObject();
         double lat = geoData.get("lat").getAsDouble();
         double lon = geoData.get("lon").getAsDouble();
         
-        // Step 2: Fetch alerts using coordinates
-        String alertUrl = String.format("%s/data/2.5/alerts?lat=%f&lon=%f&appid=%s",
+        return new double[]{lat, lon};
+    }
+    
+    /**
+     * Build the alerts API URL using coordinates
+     * 
+     * @param lat Latitude
+     * @param lon Longitude
+     * @return Complete API URL string
+     */
+    private String buildAlertsApiUrl(double lat, double lon) {
+        return String.format("%s/data/2.5/alerts?lat=%f&lon=%f&appid=%s",
             AppConfig.WEATHER_API_BASE_URL.replace("/data/2.5", ""),
             lat, lon,
             AppConfig.WEATHER_API_KEY
         );
-        
-        HttpRequest alertRequest = HttpRequest.newBuilder()
-            .uri(URI.create(alertUrl))
-            .GET()
-            .build();
-        
-        HttpResponse<String> alertResponse = httpClient.send(alertRequest, 
-            HttpResponse.BodyHandlers.ofString());
-        
-        if (alertResponse.statusCode() != 200) {
-            return new ArrayList<>();
-        }
-        
-        return parseAlertsResponse(alertResponse.body());
     }
     
     /**
-     * Simulated alerts for demo/testing
+     * Send HTTP request to the API
+     * 
+     * @param url API URL to send request to
+     * @return HTTP response
+     * @throws Exception if request fails
      */
-    private List<Alert> getSimulatedAlerts() {
-        List<Alert> alerts = new ArrayList<>();
+    private HttpResponse<String> sendHttpRequest(String url) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .build();
         
-        Alert alert1 = new Alert();
-        alert1.setId("alert-001");
-        alert1.setTitle("Moderate Wind Advisory");
-        alert1.setDescription("Winds 25-35 mph expected through tonight. Secure outdoor objects.");
-        alert1.setSeverity("medium");
-        alert1.setTimestamp(System.currentTimeMillis() / 1000);
-        alerts.add(alert1);
-        
-        return alerts;
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+    
+    /**
+     * Validate that the API response was successful
+     * 
+     * @param response HTTP response from API
+     * @throws Exception if response indicates an error
+     */
+    private void validateApiResponse(HttpResponse<String> response) throws Exception {
+        if (response.statusCode() != 200) {
+            throw new Exception("API returned status code: " + response.statusCode());
+        }
     }
     
     /**
      * Parse JSON response into Alert objects
+     * 
+     * @param jsonResponse JSON string from API
+     * @return List of Alert objects
      */
     private List<Alert> parseAlertsResponse(String jsonResponse) {
         List<Alert> alerts = new ArrayList<>();
@@ -154,28 +197,59 @@ public class AlertService {
             
             for (int i = 0; i < alertsArray.size(); i++) {
                 JsonObject alertJson = alertsArray.get(i).getAsJsonObject();
-                Alert alert = new Alert();
-                
-                alert.setId(alertJson.has("event") ? alertJson.get("event").getAsString() : "unknown");
-                alert.setTitle(alertJson.has("event") ? alertJson.get("event").getAsString() : "Weather Alert");
-                alert.setDescription(alertJson.has("description") ? alertJson.get("description").getAsString() : "");
-                alert.setTimestamp(alertJson.has("start") ? alertJson.get("start").getAsLong() : System.currentTimeMillis() / 1000);
-                
-                // Determine severity based on alert type
-                String event = alert.getTitle().toLowerCase();
-                if (event.contains("warning") || event.contains("severe")) {
-                    alert.setSeverity("high");
-                } else if (event.contains("watch")) {
-                    alert.setSeverity("medium");
-                } else {
-                    alert.setSeverity("low");
-                }
-                
+                Alert alert = createAlertFromJson(alertJson);
                 alerts.add(alert);
             }
         } catch (Exception e) {
             System.err.println("Error parsing alerts: " + e.getMessage());
         }
+        
+        return alerts;
+    }
+    
+    /**
+     * Create an Alert object from JSON data
+     * 
+     * @param alertJson JSON object representing an alert
+     * @return Alert object populated with data
+     */
+    private Alert createAlertFromJson(JsonObject alertJson) {
+        Alert alert = new Alert();
+        
+        // Set basic alert properties
+        alert.setId(alertJson.has("event") ? alertJson.get("event").getAsString() : "unknown");
+        alert.setTitle(alertJson.has("event") ? alertJson.get("event").getAsString() : "Weather Alert");
+        alert.setDescription(alertJson.has("description") ? alertJson.get("description").getAsString() : "");
+        alert.setTimestamp(alertJson.has("start") ? alertJson.get("start").getAsLong() : System.currentTimeMillis() / 1000);
+        
+        // Determine severity based on alert type
+        String event = alert.getTitle().toLowerCase();
+        if (event.contains("warning") || event.contains("severe")) {
+            alert.setSeverity("high");
+        } else if (event.contains("watch")) {
+            alert.setSeverity("medium");
+        } else {
+            alert.setSeverity("low");
+        }
+        
+        return alert;
+    }
+    
+    /**
+     * Simulated alerts for demo/testing
+     * 
+     * @return List of simulated alert objects
+     */
+    private List<Alert> getSimulatedAlerts() {
+        List<Alert> alerts = new ArrayList<>();
+        
+        Alert alert1 = new Alert();
+        alert1.setId("alert-001");
+        alert1.setTitle("Moderate Wind Advisory");
+        alert1.setDescription("Winds 25-35 mph expected through tonight. Secure outdoor objects.");
+        alert1.setSeverity("medium");
+        alert1.setTimestamp(System.currentTimeMillis() / 1000);
+        alerts.add(alert1);
         
         return alerts;
     }

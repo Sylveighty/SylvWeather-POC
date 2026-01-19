@@ -13,11 +13,13 @@ package com.school.weatherapp.util;
  */
 public class TemperatureUtil {
 
-    // Conversion constants
+    // ==================== Conversion Constants ====================
     private static final double CELSIUS_TO_FAHRENHEIT_FACTOR = 9.0 / 5.0;
     private static final double FAHRENHEIT_TO_CELSIUS_FACTOR = 5.0 / 9.0;
     private static final double FAHRENHEIT_FREEZING_POINT = 32.0;
 
+    // ==================== Temperature Unit Enumeration ====================
+    
     /**
      * Temperature units enumeration
      */
@@ -37,6 +39,8 @@ public class TemperatureUtil {
         }
     }
 
+    // ==================== Constructors ====================
+    
     /**
      * Private constructor to prevent instantiation
      */
@@ -44,6 +48,8 @@ public class TemperatureUtil {
         // Utility class
     }
 
+    // ==================== Temperature Conversion Methods ====================
+    
     /**
      * Convert Celsius to Fahrenheit
      *
@@ -105,6 +111,35 @@ public class TemperatureUtil {
     }
 
     /**
+     * Convert temperature between any two units
+     *
+     * @param temperature Input temperature value
+     * @param fromUnit Input unit
+     * @param toUnit Output unit
+     * @return Converted temperature value
+     */
+    public static double convertTemperature(double temperature, Unit fromUnit, Unit toUnit) {
+        if (fromUnit == toUnit) {
+            return temperature;
+        }
+
+        // Convert to Celsius first, then to target unit
+        double celsius = switch (fromUnit) {
+            case CELSIUS -> temperature;
+            case FAHRENHEIT -> fahrenheitToCelsius(temperature);
+            case KELVIN -> kelvinToCelsius(temperature);
+        };
+
+        return switch (toUnit) {
+            case CELSIUS -> celsius;
+            case FAHRENHEIT -> celsiusToFahrenheit(celsius);
+            case KELVIN -> celsiusToKelvin(celsius);
+        };
+    }
+
+    // ==================== Temperature Formatting Methods ====================
+    
+    /**
      * Format temperature with unit symbol
      *
      * @param temperature Temperature value
@@ -147,33 +182,8 @@ public class TemperatureUtil {
         return formatTemperature(converted, toUnit);
     }
 
-    /**
-     * Convert temperature between any two units
-     *
-     * @param temperature Input temperature value
-     * @param fromUnit Input unit
-     * @param toUnit Output unit
-     * @return Converted temperature value
-     */
-    public static double convertTemperature(double temperature, Unit fromUnit, Unit toUnit) {
-        if (fromUnit == toUnit) {
-            return temperature;
-        }
-
-        // Convert to Celsius first, then to target unit
-        double celsius = switch (fromUnit) {
-            case CELSIUS -> temperature;
-            case FAHRENHEIT -> fahrenheitToCelsius(temperature);
-            case KELVIN -> kelvinToCelsius(temperature);
-        };
-
-        return switch (toUnit) {
-            case CELSIUS -> celsius;
-            case FAHRENHEIT -> celsiusToFahrenheit(celsius);
-            case KELVIN -> celsiusToKelvin(celsius);
-        };
-    }
-
+    // ==================== Temperature Analysis Methods ====================
+    
     /**
      * Get temperature description based on value in Celsius
      *

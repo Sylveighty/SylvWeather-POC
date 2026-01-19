@@ -2,6 +2,7 @@ package com.school.weatherapp.ui.panels;
 
 import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
+import com.school.weatherapp.util.TemperatureUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -13,7 +14,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-
 import java.util.List;
 
 /**
@@ -30,12 +30,14 @@ import java.util.List;
  */
 public class HourlyForecastPanel extends VBox {
 
+    // ==================== Fields ====================
     private final ForecastService forecastService;
     private HBox forecastCardsContainer;
     private ProgressIndicator loadingIndicator;
     private Label titleLabel;
     private List<Forecast> currentForecasts;
 
+    // ==================== Constructors ====================
     public HourlyForecastPanel() {
         this.forecastService = new ForecastService();
         

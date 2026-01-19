@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class DateTimeUtil {
 
-    // Common formatters
+    // ==================== DateTime Formatters ====================
     private static final DateTimeFormatter SHORT_DATE_TIME =
         DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
 
@@ -34,6 +34,8 @@ public class DateTimeUtil {
     private static final DateTimeFormatter SHORT_DAY =
         DateTimeFormatter.ofPattern("EEE");
 
+    // ==================== Constructors ====================
+    
     /**
      * Private constructor to prevent instantiation
      */
@@ -41,6 +43,8 @@ public class DateTimeUtil {
         // Utility class
     }
 
+    // ==================== Public Methods ====================
+    
     /**
      * Format Unix timestamp to readable date and time string
      *

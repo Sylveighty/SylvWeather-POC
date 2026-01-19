@@ -27,10 +27,12 @@ import javafx.stage.Stage;
  */
 public class MainApp extends Application {
     
+    // Application constants
     private static final int WINDOW_WIDTH = 1400;
     private static final int WINDOW_HEIGHT = 900;
     private static final String APP_TITLE = "Weather Dashboard";
     
+    // UI components
     private CurrentWeatherPanel currentWeatherPanel;
     private FavoritesPanel favoritesPanel;
     private HourlyForecastPanel hourlyForecastPanel;
@@ -39,39 +41,101 @@ public class MainApp extends Application {
     private Scene scene;
     private BorderPane root;
     private ScrollPane scrollPane;
+    
+    // Application state
     private boolean darkThemeEnabled = false;
     private boolean isImperial = true; // Start with imperial (Fahrenheit) to match AppConfig default
     
     @Override
     public void start(Stage primaryStage) {
+        initializeUI(primaryStage);
+        setupEventHandlers();
+        loadInitialData();
+        
+        System.out.println("Weather App launched successfully!");
+    }
+    
+    /**
+     * Initialize the main UI components and layout
+     */
+    private void initializeUI(Stage primaryStage) {
+        // Root layout
         root = new BorderPane();
         root.setStyle("-fx-background-color: #e8eaf6;");
         
-        // Top bar with theme toggle and unit switcher
+        // Create top bar with controls
+        HBox topBar = createTopBar();
+        root.setTop(topBar);
+        
+        // Create and configure panels
+        initializePanels();
+        
+        // Create main layout
+        VBox mainLayout = createMainLayout();
+        
+        // Setup scroll pane
+        scrollPane = new ScrollPane(mainLayout);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #e8eaf6;");
+        
+        root.setCenter(scrollPane);
+        
+        // Configure scene and stage
+        scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
+        primaryStage.setTitle(APP_TITLE);
+        primaryStage.setScene(scene);
+        primaryStage.setMinWidth(1000);
+        primaryStage.setMinHeight(700);
+        primaryStage.show();
+    }
+    
+    /**
+     * Create the top bar with theme and unit controls
+     */
+    private HBox createTopBar() {
         HBox topBar = new HBox(10);
         topBar.setAlignment(Pos.TOP_RIGHT);
         topBar.setPadding(new Insets(10, 20, 0, 0));
         
         // Temperature unit toggle
+        Button unitToggle = createUnitToggleButton();
+        
+        // Theme toggle
+        Button themeToggle = createThemeToggleButton();
+        
+        topBar.getChildren().addAll(unitToggle, themeToggle);
+        return topBar;
+    }
+    
+    /**
+     * Create the temperature unit toggle button
+     */
+    private Button createUnitToggleButton() {
         Button unitToggle = new Button("°F");
         unitToggle.setStyle("-fx-font-size: 13; -fx-padding: 10 18; " +
                            "-fx-background-color: #2196F3; -fx-text-fill: white; " +
                            "-fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;");
+        
         unitToggle.setOnAction(e -> {
             // Toggle between imperial and metric
             isImperial = !isImperial;
             unitToggle.setText(isImperial ? "°F" : "°C");
             showUnitChangeMessage(isImperial ? "Fahrenheit" : "Celsius");
-
-            // Refresh all panels to display temperatures in new units
             refreshAllTemperatures();
         });
         
-        // Theme toggle
+        return unitToggle;
+    }
+    
+    /**
+     * Create the theme toggle button
+     */
+    private Button createThemeToggleButton() {
         Button themeToggle = new Button("🌙 Dark");
         themeToggle.setStyle("-fx-font-size: 13; -fx-padding: 10 18; " +
                             "-fx-background-color: #1976d2; -fx-text-fill: white; " +
                             "-fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;");
+        
         themeToggle.setOnAction(e -> {
             toggleTheme();
             themeToggle.setText(darkThemeEnabled ? "☀ Light" : "🌙 Dark");
@@ -81,29 +145,32 @@ public class MainApp extends Application {
                                 "-fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 20;");
         });
         
-        topBar.getChildren().addAll(unitToggle, themeToggle);
-        root.setTop(topBar);
-        
-        // Create panels
+        return themeToggle;
+    }
+    
+    /**
+     * Initialize all UI panels
+     */
+    private void initializePanels() {
         currentWeatherPanel = new CurrentWeatherPanel();
         favoritesPanel = new FavoritesPanel();
         hourlyForecastPanel = new HourlyForecastPanel();
         dailyForecastPanel = new DailyForecastPanel();
         alertPanel = new AlertPanel();
-        
-        // Create layout
+    }
+    
+    /**
+     * Create the main layout containing all panels
+     */
+    private VBox createMainLayout() {
         VBox mainLayout = new VBox(20);
         mainLayout.setPadding(new Insets(20));
         mainLayout.setAlignment(Pos.TOP_CENTER);
         
-        // Top section: Current weather (left) and favorites (right) - make them grow
-        HBox topSection = new HBox(20);
-        topSection.setAlignment(Pos.TOP_CENTER);
-        HBox.setHgrow(currentWeatherPanel, Priority.ALWAYS);
-        HBox.setHgrow(favoritesPanel, Priority.ALWAYS);
-        topSection.getChildren().addAll(currentWeatherPanel, favoritesPanel);
+        // Top section: Current weather and favorites
+        HBox topSection = createTopSection();
         
-        // Set max widths to fill space
+        // Configure panel widths
         alertPanel.setMaxWidth(Double.MAX_VALUE);
         hourlyForecastPanel.setMaxWidth(Double.MAX_VALUE);
         dailyForecastPanel.setMaxWidth(Double.MAX_VALUE);
@@ -116,44 +183,43 @@ public class MainApp extends Application {
             dailyForecastPanel
         );
         
-        // Scroll pane
-        scrollPane = new ScrollPane(mainLayout);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #e8eaf6;");
+        return mainLayout;
+    }
+    
+    /**
+     * Create the top section with current weather and favorites
+     */
+    private HBox createTopSection() {
+        HBox topSection = new HBox(20);
+        topSection.setAlignment(Pos.TOP_CENTER);
         
-        root.setCenter(scrollPane);
+        // Make panels grow to fill available space
+        HBox.setHgrow(currentWeatherPanel, Priority.ALWAYS);
+        HBox.setHgrow(favoritesPanel, Priority.ALWAYS);
         
-        // Create scene
-        scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
-        
-        // Configure stage
-        primaryStage.setTitle(APP_TITLE);
-        primaryStage.setScene(scene);
-        primaryStage.setMinWidth(1000);
-        primaryStage.setMinHeight(700);
-        primaryStage.show();
-        
-        // Load initial data
+        topSection.getChildren().addAll(currentWeatherPanel, favoritesPanel);
+        return topSection;
+    }
+    
+    /**
+     * Setup event handlers for panel interactions
+     */
+    private void setupEventHandlers() {
+        currentWeatherPanel.setOnCityChange(cityName -> loadForecasts(cityName));
+        currentWeatherPanel.setOnFavoritesChange(() -> favoritesPanel.refreshFavorites());
+        favoritesPanel.setOnCitySelect(cityName -> currentWeatherPanel.loadCityWeather(cityName));
+    }
+    
+    /**
+     * Load initial data for the application
+     */
+    private void loadInitialData() {
         loadForecasts(AppConfig.DEFAULT_CITY);
-        setupCityChangeListener();
-        
-        System.out.println("Weather App launched successfully!");
     }
     
-    private void setupCityChangeListener() {
-        currentWeatherPanel.setOnCityChange(cityName -> {
-            loadForecasts(cityName);
-        });
-
-        currentWeatherPanel.setOnFavoritesChange(() -> {
-            favoritesPanel.refreshFavorites();
-        });
-
-        favoritesPanel.setOnCitySelect(cityName -> {
-            currentWeatherPanel.loadCityWeather(cityName);
-        });
-    }
-    
+    /**
+     * Toggle between light and dark themes
+     */
     private void toggleTheme() {
         darkThemeEnabled = !darkThemeEnabled;
 
@@ -161,25 +227,42 @@ public class MainApp extends Application {
             root.setStyle("-fx-background-color: #1a1a1a;");
             scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #1a1a1a;");
             
-            currentWeatherPanel.applyDarkTheme();
-            favoritesPanel.applyDarkTheme();
-            hourlyForecastPanel.applyDarkTheme();
-            dailyForecastPanel.applyDarkTheme();
-            alertPanel.applyDarkTheme();
+            applyDarkThemeToPanels();
         } else {
             root.setStyle("-fx-background-color: #e8eaf6;");
             scrollPane.setStyle("-fx-background-color: transparent; -fx-background: #e8eaf6;");
             
-            currentWeatherPanel.applyLightTheme();
-            favoritesPanel.applyLightTheme();
-            hourlyForecastPanel.applyLightTheme();
-            dailyForecastPanel.applyLightTheme();
-            alertPanel.applyLightTheme();
+            applyLightThemeToPanels();
         }
 
         System.out.println("Theme: " + (darkThemeEnabled ? "Dark" : "Light"));
     }
     
+    /**
+     * Apply dark theme to all panels
+     */
+    private void applyDarkThemeToPanels() {
+        currentWeatherPanel.applyDarkTheme();
+        favoritesPanel.applyDarkTheme();
+        hourlyForecastPanel.applyDarkTheme();
+        dailyForecastPanel.applyDarkTheme();
+        alertPanel.applyDarkTheme();
+    }
+    
+    /**
+     * Apply light theme to all panels
+     */
+    private void applyLightThemeToPanels() {
+        currentWeatherPanel.applyLightTheme();
+        favoritesPanel.applyLightTheme();
+        hourlyForecastPanel.applyLightTheme();
+        dailyForecastPanel.applyLightTheme();
+        alertPanel.applyLightTheme();
+    }
+    
+    /**
+     * Load forecasts for a specific city
+     */
     private void loadForecasts(String cityName) {
         hourlyForecastPanel.loadHourlyForecast(cityName);
         dailyForecastPanel.loadDailyForecast(cityName);
@@ -190,10 +273,7 @@ public class MainApp extends Application {
      * Refresh all temperature displays with the current unit setting
      */
     private void refreshAllTemperatures() {
-        // Refresh current weather panel
         currentWeatherPanel.refreshTemperatures(isImperial);
-
-        // Refresh forecast panels
         hourlyForecastPanel.refreshTemperatures(isImperial);
         dailyForecastPanel.refreshTemperatures(isImperial);
     }

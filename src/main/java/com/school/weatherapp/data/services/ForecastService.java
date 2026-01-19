@@ -37,7 +37,10 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ForecastService {
     
+    // ==================== Fields ====================
     private final HttpClient httpClient;
+    
+    // ==================== Constructors ====================
     
     /**
      * Constructor - initializes HTTP client
@@ -45,6 +48,8 @@ public class ForecastService {
     public ForecastService() {
         this.httpClient = HttpClient.newHttpClient();
     }
+    
+    // ==================== Public Methods ====================
     
     /**
      * Fetch 5-day forecast for a city (asynchronous)
@@ -72,34 +77,85 @@ public class ForecastService {
      * @throws Exception if API call fails
      */
     public List<Forecast> getForecast(String cityName) throws Exception {
-        // Build API URL
+        String apiUrl = buildForecastApiUrl(cityName);
+        HttpResponse<String> response = sendHttpRequest(apiUrl);
+        validateApiResponse(response);
+        
+        String units = AppConfig.TEMPERATURE_UNIT.equals("imperial") ? "imperial" : "metric";
+        return parseForecastResponse(response.body(), units);
+    }
+    
+    /**
+     * Get hourly forecast for today (next 24 hours)
+     * Filters forecast data to show next 8 entries (24 hours in 3-hour intervals)
+     * 
+     * @param cityName Name of the city
+     * @return CompletableFuture containing list of hourly Forecast objects
+     */
+    public CompletableFuture<List<Forecast>> getHourlyForecastAsync(String cityName) {
+        return getForecastAsync(cityName).thenApply(forecasts -> {
+            // Return first 8 entries (24 hours)
+            return forecasts.subList(0, Math.min(8, forecasts.size()));
+        });
+    }
+    
+    /**
+     * Get 7-day daily forecast
+     * Groups 3-hour forecasts by day and calculates daily min/max
+     * 
+     * @param cityName Name of the city
+     * @return CompletableFuture containing list of daily Forecast objects
+     */
+    public CompletableFuture<List<Forecast>> getDailyForecastAsync(String cityName) {
+        return getForecastAsync(cityName).thenApply(this::groupForecastsByDay);
+    }
+    
+    // ==================== Private Methods ====================
+    
+    /**
+     * Build the forecast API URL for the given city
+     * 
+     * @param cityName Name of the city
+     * @return Complete API URL string
+     */
+    private String buildForecastApiUrl(String cityName) {
         String encodedCity = URLEncoder.encode(cityName, StandardCharsets.UTF_8);
         String units = AppConfig.TEMPERATURE_UNIT.equals("imperial") ? "imperial" : "metric";
         
-        String url = String.format("%s/forecast?q=%s&units=%s&appid=%s",
+        return String.format("%s/forecast?q=%s&units=%s&appid=%s",
             AppConfig.WEATHER_API_BASE_URL,
             encodedCity,
             units,
             AppConfig.WEATHER_API_KEY
         );
-        
-        // Create HTTP request
+    }
+    
+    /**
+     * Send HTTP request to the API
+     * 
+     * @param url API URL to send request to
+     * @return HTTP response
+     * @throws Exception if request fails
+     */
+    private HttpResponse<String> sendHttpRequest(String url) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .GET()
             .build();
         
-        // Send request and get response
-        HttpResponse<String> response = httpClient.send(request, 
-            HttpResponse.BodyHandlers.ofString());
-        
-        // Check for successful response
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+    
+    /**
+     * Validate that the API response was successful
+     * 
+     * @param response HTTP response from API
+     * @throws Exception if response indicates an error
+     */
+    private void validateApiResponse(HttpResponse<String> response) throws Exception {
         if (response.statusCode() != 200) {
             throw new Exception("API returned status code: " + response.statusCode());
         }
-        
-        // Parse JSON response
-        return parseForecastResponse(response.body(), units);
     }
     
     /**
@@ -116,46 +172,7 @@ public class ForecastService {
         
         for (int i = 0; i < list.size(); i++) {
             JsonObject item = list.get(i).getAsJsonObject();
-            Forecast forecast = new Forecast();
-            
-            // Parse timestamp
-            long timestamp = item.get("dt").getAsLong();
-            forecast.setTimestamp(timestamp);
-            
-            // Parse time labels
-            Instant instant = Instant.ofEpochSecond(timestamp);
-            DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE")
-                .withZone(ZoneId.systemDefault());
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-                .withZone(ZoneId.systemDefault());
-            
-            forecast.setDayOfWeek(dayFormatter.format(instant));
-            forecast.setTimeLabel(timeFormatter.format(instant));
-            
-            // Parse main weather data
-            JsonObject main = item.getAsJsonObject("main");
-            forecast.setTemperature(main.get("temp").getAsDouble());
-            forecast.setFeelsLike(main.get("feels_like").getAsDouble());
-            forecast.setTempMin(main.get("temp_min").getAsDouble());
-            forecast.setTempMax(main.get("temp_max").getAsDouble());
-            forecast.setHumidity(main.get("humidity").getAsInt());
-            
-            // Parse weather condition
-            JsonObject weather = item.getAsJsonArray("weather").get(0).getAsJsonObject();
-            forecast.setCondition(weather.get("main").getAsString());
-            forecast.setDescription(weather.get("description").getAsString());
-            forecast.setIconCode(weather.get("id").getAsString());
-            
-            // Parse wind
-            JsonObject wind = item.getAsJsonObject("wind");
-            forecast.setWindSpeed(wind.get("speed").getAsDouble());
-            
-            // Parse precipitation probability (if available)
-            if (item.has("pop")) {
-                int precipPercent = (int) (item.get("pop").getAsDouble() * 100);
-                forecast.setPrecipitation(precipPercent);
-            }
-            
+            Forecast forecast = createForecastFromJson(item, units);
             forecasts.add(forecast);
         }
         
@@ -163,28 +180,89 @@ public class ForecastService {
     }
     
     /**
-     * Get hourly forecast for today (next 24 hours)
-     * Filters forecast data to show next 8 entries (24 hours in 3-hour intervals)
+     * Create a Forecast object from a JSON item
      * 
-     * @param cityName Name of the city
-     * @return List of hourly Forecast objects
+     * @param item JSON object representing a forecast entry
+     * @param units Temperature units used in the API request
+     * @return Forecast object populated with data
      */
-    public CompletableFuture<List<Forecast>> getHourlyForecastAsync(String cityName) {
-        return getForecastAsync(cityName).thenApply(forecasts -> {
-            // Return first 8 entries (24 hours)
-            return forecasts.subList(0, Math.min(8, forecasts.size()));
-        });
+    private Forecast createForecastFromJson(JsonObject item, String units) {
+        Forecast forecast = new Forecast();
+        
+        // Parse timestamp and time labels
+        parseTimestampData(item, forecast);
+        
+        // Parse main weather data
+        parseMainForecastData(item, forecast, units);
+        
+        // Parse weather condition
+        parseForecastCondition(item, forecast);
+        
+        // Parse wind data
+        parseForecastWind(item, forecast);
+        
+        // Parse precipitation probability
+        parseForecastPrecipitation(item, forecast);
+        
+        return forecast;
     }
     
     /**
-     * Get 7-day daily forecast
-     * Groups 3-hour forecasts by day and calculates daily min/max
-     * 
-     * @param cityName Name of the city
-     * @return List of daily Forecast objects
+     * Parse timestamp and time label data from JSON
      */
-    public CompletableFuture<List<Forecast>> getDailyForecastAsync(String cityName) {
-        return getForecastAsync(cityName).thenApply(this::groupForecastsByDay);
+    private void parseTimestampData(JsonObject item, Forecast forecast) {
+        long timestamp = item.get("dt").getAsLong();
+        forecast.setTimestamp(timestamp);
+        
+        Instant instant = Instant.ofEpochSecond(timestamp);
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE")
+            .withZone(ZoneId.systemDefault());
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+            .withZone(ZoneId.systemDefault());
+        
+        forecast.setDayOfWeek(dayFormatter.format(instant));
+        forecast.setTimeLabel(timeFormatter.format(instant));
+    }
+    
+    /**
+     * Parse main weather data from JSON
+     */
+    private void parseMainForecastData(JsonObject item, Forecast forecast, String units) {
+        JsonObject main = item.getAsJsonObject("main");
+        forecast.setTemperature(main.get("temp").getAsDouble());
+        forecast.setFeelsLike(main.get("feels_like").getAsDouble());
+        forecast.setTempMin(main.get("temp_min").getAsDouble());
+        forecast.setTempMax(main.get("temp_max").getAsDouble());
+        forecast.setHumidity(main.get("humidity").getAsInt());
+        forecast.setTemperatureUnit(units);
+    }
+    
+    /**
+     * Parse weather condition from JSON
+     */
+    private void parseForecastCondition(JsonObject item, Forecast forecast) {
+        JsonObject weather = item.getAsJsonArray("weather").get(0).getAsJsonObject();
+        forecast.setCondition(weather.get("main").getAsString());
+        forecast.setDescription(weather.get("description").getAsString());
+        forecast.setIconCode(weather.get("id").getAsString());
+    }
+    
+    /**
+     * Parse wind data from JSON
+     */
+    private void parseForecastWind(JsonObject item, Forecast forecast) {
+        JsonObject wind = item.getAsJsonObject("wind");
+        forecast.setWindSpeed(wind.get("speed").getAsDouble());
+    }
+    
+    /**
+     * Parse precipitation probability from JSON
+     */
+    private void parseForecastPrecipitation(JsonObject item, Forecast forecast) {
+        if (item.has("pop")) {
+            int precipPercent = (int) (item.get("pop").getAsDouble() * 100);
+            forecast.setPrecipitation(precipPercent);
+        }
     }
     
     /**
@@ -197,7 +275,7 @@ public class ForecastService {
     private List<Forecast> groupForecastsByDay(List<Forecast> forecasts) {
         Map<String, List<Forecast>> dayGroups = new HashMap<>();
         
-        // Group by day
+        // Group forecasts by day
         for (Forecast forecast : forecasts) {
             String day = forecast.getDayOfWeek();
             dayGroups.computeIfAbsent(day, k -> new ArrayList<>()).add(forecast);
@@ -210,51 +288,7 @@ public class ForecastService {
             List<Forecast> dayForecasts = entry.getValue();
             if (dayForecasts.isEmpty()) continue;
             
-            Forecast dailyForecast = new Forecast();
-            
-            // Use first forecast for base data
-            Forecast first = dayForecasts.get(0);
-            dailyForecast.setDayOfWeek(first.getDayOfWeek());
-            dailyForecast.setTimeLabel(first.getDayOfWeek());
-            dailyForecast.setTimestamp(first.getTimestamp());
-            
-            // Set temperature unit from the first forecast
-            dailyForecast.setTemperatureUnit(first.getTemperatureUnit());
-            
-            // Calculate min/max temps
-            double minTemp = dayForecasts.stream()
-                .mapToDouble(Forecast::getTempMin)
-                .min()
-                .orElse(first.getTempMin());
-            
-            double maxTemp = dayForecasts.stream()
-                .mapToDouble(Forecast::getTempMax)
-                .max()
-                .orElse(first.getTempMax());
-            
-            dailyForecast.setTempMin(minTemp);
-            dailyForecast.setTempMax(maxTemp);
-            dailyForecast.setTemperature((minTemp + maxTemp) / 2);
-            
-            // Use midday forecast for condition (around noon)
-            Forecast midday = dayForecasts.get(dayForecasts.size() / 2);
-            dailyForecast.setCondition(midday.getCondition());
-            dailyForecast.setDescription(midday.getDescription());
-            dailyForecast.setIconCode(midday.getIconCode());
-            
-            // Average other values
-            double avgHumidity = dayForecasts.stream()
-                .mapToInt(Forecast::getHumidity)
-                .average()
-                .orElse(first.getHumidity());
-            dailyForecast.setHumidity((int) avgHumidity);
-            
-            double avgWind = dayForecasts.stream()
-                .mapToDouble(Forecast::getWindSpeed)
-                .average()
-                .orElse(first.getWindSpeed());
-            dailyForecast.setWindSpeed(avgWind);
-            
+            Forecast dailyForecast = createDailyForecast(dayForecasts);
             dailyForecasts.add(dailyForecast);
             
             // Limit to 7 days
@@ -262,5 +296,72 @@ public class ForecastService {
         }
         
         return dailyForecasts;
+    }
+    
+    /**
+     * Create a daily forecast from a list of hourly forecasts for that day
+     * 
+     * @param dayForecasts List of hourly forecasts for a specific day
+     * @return Daily forecast with aggregated data
+     */
+    private Forecast createDailyForecast(List<Forecast> dayForecasts) {
+        Forecast dailyForecast = new Forecast();
+        
+        // Use first forecast for base data
+        Forecast first = dayForecasts.get(0);
+        dailyForecast.setDayOfWeek(first.getDayOfWeek());
+        dailyForecast.setTimeLabel(first.getDayOfWeek());
+        dailyForecast.setTimestamp(first.getTimestamp());
+        dailyForecast.setTemperatureUnit(first.getTemperatureUnit());
+        
+        // Calculate min/max temperatures
+        calculateTemperatureRange(dayForecasts, dailyForecast);
+        
+        // Use midday forecast for condition (around noon)
+        Forecast midday = dayForecasts.get(dayForecasts.size() / 2);
+        dailyForecast.setCondition(midday.getCondition());
+        dailyForecast.setDescription(midday.getDescription());
+        dailyForecast.setIconCode(midday.getIconCode());
+        
+        // Calculate average values
+        calculateAverageValues(dayForecasts, dailyForecast);
+        
+        return dailyForecast;
+    }
+    
+    /**
+     * Calculate min/max temperature range for a day
+     */
+    private void calculateTemperatureRange(List<Forecast> dayForecasts, Forecast dailyForecast) {
+        double minTemp = dayForecasts.stream()
+            .mapToDouble(Forecast::getTempMin)
+            .min()
+            .orElse(dayForecasts.get(0).getTempMin());
+        
+        double maxTemp = dayForecasts.stream()
+            .mapToDouble(Forecast::getTempMax)
+            .max()
+            .orElse(dayForecasts.get(0).getTempMax());
+        
+        dailyForecast.setTempMin(minTemp);
+        dailyForecast.setTempMax(maxTemp);
+        dailyForecast.setTemperature((minTemp + maxTemp) / 2);
+    }
+    
+    /**
+     * Calculate average values for humidity and wind speed
+     */
+    private void calculateAverageValues(List<Forecast> dayForecasts, Forecast dailyForecast) {
+        double avgHumidity = dayForecasts.stream()
+            .mapToInt(Forecast::getHumidity)
+            .average()
+            .orElse(dayForecasts.get(0).getHumidity());
+        dailyForecast.setHumidity((int) avgHumidity);
+        
+        double avgWind = dayForecasts.stream()
+            .mapToDouble(Forecast::getWindSpeed)
+            .average()
+            .orElse(dayForecasts.get(0).getWindSpeed());
+        dailyForecast.setWindSpeed(avgWind);
     }
 }

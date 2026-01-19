@@ -4,6 +4,8 @@ import com.school.weatherapp.data.models.Weather;
 import com.school.weatherapp.data.services.WeatherService;
 import com.school.weatherapp.config.AppConfig;
 import com.school.weatherapp.features.FavoritesService;
+import com.school.weatherapp.util.DateTimeUtil;
+import com.school.weatherapp.util.TemperatureUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,10 +14,6 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
 
 /**
@@ -33,6 +31,8 @@ import java.util.function.Consumer;
  * @version 1.2 (Theme Support)
  */
 public class CurrentWeatherPanel extends VBox {
+    
+    // ==================== Fields ====================
     
     // Services
     private final WeatherService weatherService;
@@ -58,11 +58,11 @@ public class CurrentWeatherPanel extends VBox {
     // Current weather data
     private Weather currentWeather;
     
-    // Callback for when city changes
+    // Callbacks
     private Consumer<String> onCityChangeCallback;
-    
-    // Callback for when favorites change
     private Runnable onFavoritesChangeCallback;
+    
+    // ==================== Constructors ====================
     
     /**
      * Constructor - builds the UI panel
@@ -85,6 +85,8 @@ public class CurrentWeatherPanel extends VBox {
         // Load default city weather
         loadWeather(AppConfig.DEFAULT_CITY);
     }
+    
+    // ==================== Theme Methods ====================
     
     /**
      * Apply light theme colors
@@ -212,6 +214,8 @@ public class CurrentWeatherPanel extends VBox {
         }
     }
     
+    // ==================== Callback Methods ====================
+    
     /**
      * Set callback to be notified when city changes
      * 
@@ -229,6 +233,8 @@ public class CurrentWeatherPanel extends VBox {
     public void setOnFavoritesChange(Runnable callback) {
         this.onFavoritesChangeCallback = callback;
     }
+    
+    // ==================== UI Building Methods ====================
     
     /**
      * Build search bar with text field and button
@@ -377,6 +383,8 @@ public class CurrentWeatherPanel extends VBox {
         return label;
     }
     
+    // ==================== Event Handlers ====================
+    
     /**
      * Handle search button click
      */
@@ -429,6 +437,8 @@ public class CurrentWeatherPanel extends VBox {
             }
         }
     }
+    
+    // ==================== Weather Loading and Display ====================
     
     /**
      * Load weather data for a city
@@ -486,7 +496,7 @@ public class CurrentWeatherPanel extends VBox {
         pressureLabel.setText(weather.getPressure() + " hPa");
         
         // Update timestamp
-        String timestamp = formatTimestamp(weather.getTimestamp());
+        String timestamp = DateTimeUtil.formatDateTime(weather.getTimestamp());
         lastUpdatedLabel.setText("Last updated: " + timestamp);
 
         // Update favorite button state
@@ -509,21 +519,22 @@ public class CurrentWeatherPanel extends VBox {
         alert.showAndWait();
     }
     
+    // ==================== Utility Methods ====================
+    
     /**
      * Get emoji representation of weather condition
      */
     private String getWeatherEmoji(String condition) {
-        switch (condition.toLowerCase()) {
-            case "clear": return "☀";
-            case "clouds": return "☁";
-            case "rain": return "⛈";
-            case "drizzle": return "☔";
-            case "thunderstorm": return "⚡";
-            case "snow": return "❄";
-            case "mist":
-            case "fog": return "≈";
-            default: return "◐";
-        }
+        return switch (condition.toLowerCase()) {
+            case "clear" -> "☀";
+            case "clouds" -> "☁";
+            case "rain" -> "⛈";
+            case "drizzle" -> "☔";
+            case "thunderstorm" -> "⚡";
+            case "snow" -> "❄";
+            case "mist", "fog" -> "≈";
+            default -> "◐";
+        };
     }
     
     /**
@@ -542,15 +553,7 @@ public class CurrentWeatherPanel extends VBox {
         return result.toString().trim();
     }
     
-    /**
-     * Format Unix timestamp to readable string
-     */
-    private String formatTimestamp(long timestamp) {
-        Instant instant = Instant.ofEpochSecond(timestamp);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")
-            .withZone(ZoneId.systemDefault());
-        return formatter.format(instant);
-    }
+    // ==================== Public Methods ====================
     
     /**
      * Get current weather data
@@ -605,10 +608,10 @@ public class CurrentWeatherPanel extends VBox {
         if (needConversion) {
             if (weather.getTemperatureUnit().equals("imperial")) {
                 // Convert from Fahrenheit to Celsius
-                tempValue = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(weather.getTemperature());
+                tempValue = TemperatureUtil.fahrenheitToCelsius(weather.getTemperature());
             } else {
                 // Convert from Celsius to Fahrenheit
-                tempValue = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getTemperature());
+                tempValue = TemperatureUtil.celsiusToFahrenheit(weather.getTemperature());
             }
         } else {
             // No conversion needed, use original value
@@ -623,10 +626,10 @@ public class CurrentWeatherPanel extends VBox {
         if (needConversion) {
             if (weather.getTemperatureUnit().equals("imperial")) {
                 // Convert from Fahrenheit to Celsius
-                feelsLikeValue = com.school.weatherapp.util.TemperatureUtil.fahrenheitToCelsius(weather.getFeelsLike());
+                feelsLikeValue = TemperatureUtil.fahrenheitToCelsius(weather.getFeelsLike());
             } else {
                 // Convert from Celsius to Fahrenheit
-                feelsLikeValue = com.school.weatherapp.util.TemperatureUtil.celsiusToFahrenheit(weather.getFeelsLike());
+                feelsLikeValue = TemperatureUtil.celsiusToFahrenheit(weather.getFeelsLike());
             }
         } else {
             // No conversion needed, use original value

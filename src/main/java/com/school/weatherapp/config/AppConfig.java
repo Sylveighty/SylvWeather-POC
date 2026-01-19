@@ -16,84 +16,51 @@ package com.school.weatherapp.config;
  */
 public class AppConfig {
     
-    // ============ API Configuration ============
+    // ==================== API Configuration ====================
     
-    /**
-     * OpenWeatherMap API base URL
-     * Documentation: https://openweathermap.org/api
-     */
+    /** OpenWeatherMap API base URL */
     public static final String WEATHER_API_BASE_URL = "https://api.openweathermap.org/data/2.5";
     
-    /**
-     * API Key for OpenWeatherMap
-     * DONE: Replace with your actual API key from https://openweathermap.org/api
-     */
+    /** API Key for OpenWeatherMap - Replace with your actual API key from https://openweathermap.org/api */
     public static final String WEATHER_API_KEY = "f55978d8ae2181360e45c253d1e13d60";
     
-    /**
-     * Default city to display on app launch
-     */
+    /** Default city to display on app launch */
     public static final String DEFAULT_CITY = "New York";
     
+    // ==================== Refresh Intervals ====================
     
-    // ============ Refresh Intervals ============
-    
-    /**
-     * How often to refresh current weather data (in seconds)
-     * Default: 10 minutes
-     */
+    /** How often to refresh current weather data (in seconds). Default: 10 minutes */
     public static final int WEATHER_REFRESH_INTERVAL = 600;
     
-    /**
-     * How often to check for weather alerts (in seconds)
-     * Default: 15 minutes
-     */
+    /** How often to check for weather alerts (in seconds). Default: 15 minutes */
     public static final int ALERTS_REFRESH_INTERVAL = 900;
     
+    // ==================== UI Configuration ====================
     
-    // ============ UI Configuration ============
-    
-    /**
-     * Default theme on startup (light or dark)
-     */
+    /** Default theme on startup (light or dark) */
     public static final String DEFAULT_THEME = "light";
     
-    /**
-     * Enable smooth animations for data updates
-     */
+    /** Enable smooth animations for data updates */
     public static final boolean ENABLE_ANIMATIONS = true;
     
-    /**
-     * Temperature unit preference (metric or imperial)
-     */
+    /** Temperature unit preference (metric or imperial) */
     public static final String TEMPERATURE_UNIT = "imperial"; // Fahrenheit
-
-    /**
-     * Path to favorites file for storing favorite cities
-     */
+    
+    /** Path to favorites file for storing favorite cities */
     public static final String FAVORITES_FILE_PATH = "favorites.txt";
     
+    // ==================== Feature Toggles ====================
     
-    // ============ Feature Toggles ============
-    
-    /**
-     * Enable real-time weather alerts feature
-     */
+    /** Enable real-time weather alerts feature */
     public static final boolean ENABLE_ALERTS = true;
     
-    /**
-     * Enable GPS location detection
-     */
+    /** Enable GPS location detection */
     public static final boolean ENABLE_GPS = false; // Disabled for POC
     
-    /**
-     * Use simulated data instead of live API calls
-     * Useful for development/testing without API key
-     */
+    /** Use simulated data instead of live API calls. Useful for development/testing without API key */
     public static final boolean USE_SIMULATED_DATA = false;
     
-    
-    // ============ Private Constructor ============
+    // ==================== Private Constructor ====================
     
     /**
      * Private constructor to prevent instantiation
