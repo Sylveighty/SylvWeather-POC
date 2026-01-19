@@ -1,5 +1,5 @@
 # Gradle / build outputs
-.gradle/
+.gradle
 build/
 bin/
 

@@ -16,11 +16,11 @@ import java.util.List;
 /**
  * AlertPanel - UI panel displaying weather alerts.
  *
- * Notes (POC):
- * - Alert availability can vary by location and API plan/endpoints.
+ * POC note:
+ * - Alerts availability can vary by location and OpenWeather plan/endpoints.
  * - The service may return simulated alerts when live alerts are unavailable.
  *
- * Styling is handled via theme.css / theme-dark.css.
+ * This panel displays which city the alerts correspond to and whether data is live or simulated.
  */
 public class AlertPanel extends VBox {
 
@@ -30,20 +30,24 @@ public class AlertPanel extends VBox {
     private final AlertService alertService;
 
     private Label titleLabel;
+    private Label contextLabel;     // Shows city + source
     private VBox alertsContainer;
     private VBox containerBox;
 
     private ProgressIndicator loadingIndicator;
 
+    // Track the most recent request city
+    private String currentCity = "";
+
     public AlertPanel() {
         this.alertService = new AlertService();
 
         setPadding(new Insets(20));
-        setSpacing(15);
+        setSpacing(8);
 
         getStyleClass().add("panel-background");
 
-        buildTitle();
+        buildHeader();
         buildAlertsContainer();
 
         applyLightTheme();
@@ -77,10 +81,14 @@ public class AlertPanel extends VBox {
 
     // -------------------- UI Build --------------------
 
-    private void buildTitle() {
+    private void buildHeader() {
         titleLabel = new Label("Weather Alerts");
         titleLabel.getStyleClass().add("section-title");
-        getChildren().add(titleLabel);
+
+        contextLabel = new Label("No city selected");
+        contextLabel.getStyleClass().add("label-subtle");
+
+        getChildren().addAll(titleLabel, contextLabel);
     }
 
     private void buildAlertsContainer() {
@@ -103,16 +111,39 @@ public class AlertPanel extends VBox {
     // -------------------- Data Load --------------------
 
     public void loadAlerts(String cityName) {
+        this.currentCity = (cityName == null || cityName.isBlank()) ? "" : cityName.trim();
+        contextLabel.setText("Loading alerts for: " + (currentCity.isEmpty() ? "(unknown city)" : currentCity));
+
         showLoading();
 
         alertService.getAlertsAsync(cityName)
             .thenAccept(alerts -> Platform.runLater(() -> {
                 if (alerts == null || alerts.isEmpty()) {
+                    contextLabel.setText("Alerts for: " + safeCity() + " (none available)");
                     showNoAlerts();
-                } else {
-                    showAlerts(alerts);
+                    return;
                 }
+
+                // Heuristic: if the service returns exactly the known simulated alert title,
+                // label it as simulated. This avoids changing AlertService yet.
+                boolean simulated = looksSimulated(alerts);
+
+                contextLabel.setText("Alerts for: " + safeCity() + (simulated ? " (simulated fallback)" : " (live)"));
+                showAlerts(alerts);
             }));
+    }
+
+    private String safeCity() {
+        return currentCity.isEmpty() ? "(unknown city)" : currentCity;
+    }
+
+    private boolean looksSimulated(List<Alert> alerts) {
+        // Your simulated alert title in the current service is "Moderate Wind Advisory"
+        // If you change the simulated data later, update this heuristic accordingly.
+        if (alerts.size() != 1) return false;
+        Alert a = alerts.get(0);
+        if (a == null || a.getTitle() == null) return false;
+        return "Moderate Wind Advisory".equalsIgnoreCase(a.getTitle().trim());
     }
 
     // -------------------- Rendering --------------------
@@ -144,7 +175,6 @@ public class AlertPanel extends VBox {
 
     private void showAlerts(List<Alert> alerts) {
         alertsContainer.getChildren().clear();
-
         for (Alert alert : alerts) {
             alertsContainer.getChildren().add(createAlertCard(alert));
         }
