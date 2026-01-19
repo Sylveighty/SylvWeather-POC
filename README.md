@@ -1,137 +1,197 @@
-# SylvWeather-POC
+SylvWeather-POC
+1. Project Overview
 
-## 1. Project Overview
+SylvWeather-POC is a Java 17+ / JavaFX desktop weather dashboard built as a proof-of-concept (POC). The project demonstrates the JavaFX application lifecycle, modular UI composition, and integration with a real external REST API (OpenWeather).
 
-SylvWeather-POC is a Java 17+ / JavaFX desktop weather dashboard built as a proof-of-concept (POC). The project is designed to demonstrate the JavaFX application lifecycle, UI layout composition, and integration with a real external REST API (OpenWeather). The implementation prioritizes clarity and learning value over production concerns such as caching, persistence layers, rate-limit strategies, and exhaustive error handling.
+This project prioritizes clarity, structure, and learning value over production concerns such as caching, persistence layers, rate limiting, and exhaustive error handling. It is intended for academic evaluation, technical presentations, and early-career portfolio review.
 
-## 2. UI Preview
+2. UI Preview
 
-> Screenshots to be added.
+Screenshots to be added.
 
-- `docs/images/main-dashboard.png`
-- `docs/images/current-weather-and-favorites.png`
-- `docs/images/hourly-and-daily-forecast.png`
-- `docs/images/alerts-panel.png`
+Planned image locations:
 
-## 3. Implemented Features
+docs/images/main-dashboard.png
 
-Only features present in the current codebase are listed here:
+docs/images/current-weather-and-favorites.png
 
-- Search weather by city name and display current conditions in the UI
-- Retrieve live data from OpenWeather:
-  - Current weather via `WeatherService`
-  - Forecast via `ForecastService` (5-day / 3-hour feed)
-- Hourly forecast view:
-  - Displays a next-period subset of the 3-hour forecast feed (commonly used as an “~24 hours” view)
-- Daily forecast summary view:
-  - Groups 3-hour forecast entries by day
-  - Calculates daily min/max temperatures and displays a summary
-- Favorites:
-  - Add/remove cities from favorites
-  - Favorites are persisted to a local text file (`favorites.txt`) via `FavoritesService`
-- Theme toggle (light/dark) applied across panels
-- Temperature unit toggle (F/C) that refreshes temperature displays across panels
-- Alerts panel:
-  - Attempts to fetch alerts via `AlertService`
-  - Falls back to simulated alerts when API retrieval is unavailable or fails
+docs/images/hourly-and-daily-forecast.png
 
-## 4. Architecture Overview
+docs/images/alerts-panel.png
 
-The project is organized around clear separation of concerns:
+3. Implemented Features
 
-### Packages (actual)
+Only features present in the current codebase are listed below:
 
-- `com.school.weatherapp.app`
-  - `MainApp` — JavaFX entry point; builds scene/layout and wires panel interactions
+Search weather by city name and display current conditions
 
-- `com.school.weatherapp.config`
-  - `AppConfig` — centralized configuration constants (API base URL, default city, favorites file path, etc.)
+Live data retrieval from the OpenWeather API:
 
-- `com.school.weatherapp.data.models`
-  - `Weather`, `Forecast`, `Alert` — data objects used by services and rendered by the UI
+Current weather via WeatherService
 
-- `com.school.weatherapp.data.services`
-  - `WeatherService` — current weather fetch + JSON parsing (Gson)
-  - `ForecastService` — forecast fetch + transformation for hourly/daily views
-  - `AlertService` — attempts alert retrieval and provides simulated fallback alerts
+Forecast data via ForecastService (5-day / 3-hour feed)
 
-- `com.school.weatherapp.features`
-  - `FavoritesService` — loads/saves favorite cities to `favorites.txt`
+Hourly forecast view:
 
-- `com.school.weatherapp.ui.panels`
-  - `CurrentWeatherPanel`, `FavoritesPanel`, `HourlyForecastPanel`, `DailyForecastPanel`, `AlertPanel` — modular UI components
+Displays a subset of upcoming 3-hour forecast entries
 
-- `com.school.weatherapp.util`
-  - `DateTimeUtil`, `TemperatureUtil` — formatting and conversions used by UI components
+Daily forecast summary view:
 
-### JavaFX lifecycle
+Groups 3-hour forecast data by day
 
-- `MainApp extends javafx.application.Application`
-- `start(Stage)`:
-  - creates the root layout (`BorderPane`) and scene
-  - initializes panels and composes them into the layout
-  - wires callbacks between panels (city change → refresh forecast/alerts; favorites select → load city)
-  - triggers initial forecast/alert loading using `AppConfig.DEFAULT_CITY`
+Calculates daily minimum and maximum temperatures
 
-## 5. Weather Data Source
+Favorites management:
+
+Add and remove favorite cities
+
+Favorites persisted locally via a text file (favorites.txt)
+
+Light and dark theme toggle using JavaFX CSS
+
+Temperature unit toggle (Celsius / Fahrenheit)
+
+Alerts panel:
+
+Attempts to retrieve alerts via the OpenWeather API
+
+Falls back to simulated alerts when live data is unavailable
+
+4. Architecture Overview
+
+The project follows a clear separation of concerns and modular structure.
+
+Package structure (actual)
+
+com.school.weatherapp.app
+
+MainApp — JavaFX entry point; builds the scene and wires panel interactions
+
+com.school.weatherapp.config
+
+AppConfig — centralized configuration constants and defaults
+
+com.school.weatherapp.data.models
+
+Weather, Forecast, Alert — data models used by services and UI
+
+com.school.weatherapp.data.services
+
+WeatherService — current weather retrieval and parsing
+
+ForecastService — forecast retrieval and transformation
+
+AlertService — alert retrieval with simulated fallback support
+
+com.school.weatherapp.features
+
+FavoritesService — persistence and retrieval of favorite cities
+
+com.school.weatherapp.ui.panels
+
+Modular UI components:
+
+CurrentWeatherPanel
+
+FavoritesPanel
+
+HourlyForecastPanel
+
+DailyForecastPanel
+
+AlertPanel
+
+com.school.weatherapp.util
+
+Utility helpers for date/time formatting and temperature conversion
+
+JavaFX lifecycle
+
+MainApp extends javafx.application.Application
+
+start(Stage):
+
+Creates the root layout and scene
+
+Loads CSS stylesheets
+
+Initializes and composes UI panels
+
+Wires callbacks between panels
+
+Loads initial data using a default city
+
+5. Weather Data Source
 
 This project uses the OpenWeather API.
 
-- Current conditions:
-  - Endpoint: `/data/2.5/weather`
-  - Implemented in: `com.school.weatherapp.data.services.WeatherService`
+Endpoints used
 
-- Forecast:
-  - Endpoint: `/data/2.5/forecast` (5-day / 3-hour)
-  - Implemented in: `com.school.weatherapp.data.services.ForecastService`
-  - Used to produce:
-    - Hourly subset (next N 3-hour entries)
-    - Daily summaries (grouped by day with min/max)
+Current weather:
 
-- Alerts:
-  - Implemented in: `com.school.weatherapp.data.services.AlertService`
-  - Behavior:
-    - Attempts a geocoding lookup and a follow-up alerts request
-    - If unavailable/failing, the UI displays simulated alerts (intended for demonstration)
+Endpoint: /data/2.5/weather
 
-### API key usage
+Implemented in WeatherService
 
-An API key is required to run the application. Do not commit real keys to version control.
+Forecast:
 
-Recommended setup:
-- Provide the key via environment variable (preferred), or use a local config that is excluded from git.
+Endpoint: /data/2.5/forecast (5-day / 3-hour)
 
-Advanced concerns such as caching, retries, and rate limiting are intentionally out of scope for this POC.
+Implemented in ForecastService
 
-## 6. Technology Stack
+Used to produce hourly and daily views
 
-- Java 17+
-- JavaFX (configured via `org.openjfx.javafxplugin` in `build.gradle`)
-- Gradle
-- OpenWeather API
-- Gson (`com.google.code.gson:gson:2.10.1`) for JSON parsing
-- JUnit 5 dependencies included for testing (`org.junit.jupiter`)
+Alerts:
 
-## 7. Getting Started
+Implemented in AlertService
 
-### Prerequisites
-- JDK 17+
-- Gradle installed and available in PATH
-- Internet connection (for live API calls)
+May return simulated alerts when live data is unavailable
 
-### API key setup (recommended)
+API key usage
 
-Set an environment variable:
+An API key is required to run the application.
 
-**Windows (PowerShell)**
-```powershell
+The key is read from the environment variable OPENWEATHER_API_KEY
+
+API keys must not be committed to version control
+
+Advanced concerns such as retries, caching, and rate limiting are intentionally out of scope for this POC.
+
+6. Technology Stack
+
+Java 17+
+
+JavaFX
+
+Gradle
+
+OpenWeather API
+
+Gson (for JSON parsing)
+
+JUnit 5 (dependencies included for testing)
+
+7. Getting Started
+Prerequisites
+
+JDK 17 or higher
+
+Gradle installed and available in PATH
+
+Internet connection for API calls
+
+API key setup
+
+Set the OpenWeather API key as an environment variable.
+
+Windows (PowerShell)
+
 setx OPENWEATHER_API_KEY "YOUR_KEY_HERE"
 
-macOS/Linux
+
+macOS / Linux
 
 export OPENWEATHER_API_KEY="YOUR_KEY_HERE"
-
-If your code currently reads the key from AppConfig.WEATHER_API_KEY, update it to read from OPENWEATHER_API_KEY (recommended portfolio hygiene). Do not expose keys in commits.
 
 Build
 gradle build
@@ -140,50 +200,51 @@ Run
 gradle run
 
 
-(There is also a custom Gradle task runApp defined in build.gradle.)
+A custom Gradle task such as runApp may also be available depending on configuration.
 
 JavaFX notes
 
-JavaFX is configured through the Gradle JavaFX plugin. Ensure you are using a JDK 17+ and that Gradle resolves the JavaFX dependencies successfully.
+JavaFX dependencies are managed through the Gradle JavaFX plugin. Ensure you are using a compatible JDK and that Gradle resolves JavaFX modules correctly.
 
 8. Design Decisions
 
-JavaFX was chosen to demonstrate desktop UI development using a standard Java application lifecycle and layout composition.
+JavaFX was chosen to demonstrate desktop UI development using a standard Java application lifecycle.
 
-OpenWeather was selected because it provides accessible REST endpoints suitable for educational projects.
+OpenWeather was selected due to its accessible REST API suitable for educational projects.
 
-The UI is split into panels (com.school.weatherapp.ui.panels) to keep concerns localized and presentation-friendly.
+The UI is split into modular panels to improve readability and maintainability.
 
-The project emphasizes readability and modular structure over advanced production patterns (DI, persistence layers, complex state management).
+The project favors straightforward structure over advanced production patterns such as dependency injection or persistence frameworks.
 
 9. Limitations
 
-Not production hardened (POC scope)
+Proof-of-concept scope; not production-hardened
 
 Limited automated testing
 
-No caching/offline support
+No caching or offline support
 
-API resilience features (timeouts/retries/rate-limit handling) are minimal
+Minimal API resilience (timeouts, retries, rate-limit handling)
 
-Alerts are not guaranteed from the live API path used; simulated fallback alerts may be shown
+Alerts may be simulated depending on API availability
 
-Favorites persistence is a simple text file (favorites.txt), not a database-backed feature
+Favorites persistence uses a simple text file rather than a database
 
 10. Future Improvements
 
-Improve error handling and user feedback for network and API failures
+Improve error handling and user feedback
 
-Add API resilience: timeouts, retries, lightweight caching
+Add API resilience features (timeouts, retries, lightweight caching)
 
-Add unit and integration tests for parsing and forecast grouping
+Introduce unit and integration testing
 
-Reduce inline styling duplication and improve theming consistency
+Improve UI polish and theming consistency
 
 Cross-platform packaging (e.g., jpackage)
 
-Externalize configuration cleanly (API key, defaults) without committing secrets
+Cleaner externalized configuration management
 
 11. License & Usage
 
-This project is intended for educational and non-commercial use. If you use OpenWeather endpoints, ensure usage complies with OpenWeather terms and any applicable rate limits.
+This project is intended for educational and non-commercial use.
+If using OpenWeather services, ensure compliance with OpenWeather’s terms of service and applicable rate limits.
