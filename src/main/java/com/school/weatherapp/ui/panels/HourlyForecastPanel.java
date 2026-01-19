@@ -17,30 +17,35 @@ import javafx.scene.text.Text;
 
 import java.util.List;
 
+/**
+ * HourlyForecastPanel - UI panel displaying hourly weather forecast
+ * 
+ * Shows a horizontal row of hourly forecast cards with:
+ * - Time
+ * - Weather icon
+ * - Temperature
+ * - Precipitation chance
+ * 
+ * @author Weather App Team
+ * @version 1.1 (Centered Layout)
+ */
 public class HourlyForecastPanel extends VBox {
 
     private final ForecastService forecastService;
-
     private HBox forecastCardsContainer;
     private ProgressIndicator loadingIndicator;
     private Label titleLabel;
 
     public HourlyForecastPanel() {
         this.forecastService = new ForecastService();
-
-        // Panel layout
+        
         setPadding(new Insets(20));
         setSpacing(15);
-
-        // ✅ Build UI FIRST
+        
         buildTitle();
         buildForecastContainer();
-
-        // ✅ Apply theme LAST
         applyLightTheme();
     }
-
-    /* ===================== THEMES ===================== */
 
     public void applyLightTheme() {
         setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
@@ -78,13 +83,7 @@ public class HourlyForecastPanel extends VBox {
         updateForecastCardsTheme("#e0e0e0", "#3a3a3a", "#444", "#555");
     }
 
-    private void updateForecastCardsTheme(
-            String textColor,
-            String cardBg,
-            String hoverBg,
-            String borderColor) {
-
-        // 🛡️ Absolute safety guard
+    private void updateForecastCardsTheme(String textColor, String cardBg, String hoverBg, String borderColor) {
         if (forecastCardsContainer == null) return;
 
         for (Node node : forecastCardsContainer.getChildren()) {
@@ -123,8 +122,6 @@ public class HourlyForecastPanel extends VBox {
         }
     }
 
-    /* ===================== UI BUILD ===================== */
-
     private void buildTitle() {
         titleLabel = new Label("Hourly Forecast");
         titleLabel.setFont(Font.font("System", FontWeight.BOLD, 22));
@@ -133,7 +130,7 @@ public class HourlyForecastPanel extends VBox {
 
     private void buildForecastContainer() {
         forecastCardsContainer = new HBox(12);
-        forecastCardsContainer.setAlignment(Pos.CENTER_LEFT);
+        forecastCardsContainer.setAlignment(Pos.CENTER);
 
         loadingIndicator = new ProgressIndicator();
         loadingIndicator.setMaxSize(40, 40);
@@ -146,12 +143,13 @@ public class HourlyForecastPanel extends VBox {
         getChildren().add(forecastCardsContainer);
     }
 
-    /* ===================== DATA ===================== */
-
     public void loadHourlyForecast(String cityName) {
         Platform.runLater(() -> {
             forecastCardsContainer.getChildren().clear();
-            forecastCardsContainer.getChildren().add(new VBox(loadingIndicator));
+            VBox loadingBox = new VBox(loadingIndicator);
+            loadingBox.setAlignment(Pos.CENTER);
+            loadingBox.setPrefHeight(120);
+            forecastCardsContainer.getChildren().add(loadingBox);
         });
 
         forecastService.getHourlyForecastAsync(cityName)
@@ -179,21 +177,29 @@ public class HourlyForecastPanel extends VBox {
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(12));
         card.setPrefWidth(90);
+        card.setStyle("-fx-background-color: #fafafa; " +
+                     "-fx-background-radius: 8; " +
+                     "-fx-border-color: #e0e0e0; " +
+                     "-fx-border-radius: 8; " +
+                     "-fx-border-width: 1;");
 
         Label timeLabel = new Label(forecast.getTimeLabel());
         timeLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
+        timeLabel.setStyle("-fx-text-fill: #333;");
 
         Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
-        icon.setStyle("-fx-font-size: 28px;");
+        icon.setStyle("-fx-font-size: 32px; -fx-font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;");
 
         String unit = AppConfig.TEMPERATURE_UNIT.equals("imperial") ? "°F" : "°C";
         Label tempLabel = new Label(String.format("%.0f%s", forecast.getTemperature(), unit));
         tempLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+        tempLabel.setStyle("-fx-text-fill: #333;");
 
         card.getChildren().addAll(timeLabel, icon, tempLabel);
 
         if (forecast.getPrecipitation() > 0) {
             Label precip = new Label(forecast.getPrecipitation() + "%");
+            precip.setFont(Font.font("System", 11));
             precip.setStyle("-fx-text-fill: #1976d2;");
             card.getChildren().add(precip);
         }
@@ -203,7 +209,7 @@ public class HourlyForecastPanel extends VBox {
 
     private void showError() {
         Label error = new Label("Could not load forecast data");
-        error.setStyle("-fx-text-fill: #999;");
+        error.setStyle("-fx-text-fill: #999; -fx-font-size: 14px;");
         forecastCardsContainer.getChildren().add(error);
     }
 
