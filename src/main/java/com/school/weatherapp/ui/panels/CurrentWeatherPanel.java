@@ -74,9 +74,9 @@ public class CurrentWeatherPanel extends VBox {
     private Consumer<String> onCityChangeCallback;
     private Runnable onFavoritesChangeCallback;
 
-    public CurrentWeatherPanel() {
+    public CurrentWeatherPanel(FavoritesService favoritesService) {
         this.weatherService = new WeatherService();
-        this.favoritesService = new FavoritesService();
+        this.favoritesService = favoritesService;
 
         // Layout (no color/typography here; CSS handles that).
         setPadding(new Insets(20));
