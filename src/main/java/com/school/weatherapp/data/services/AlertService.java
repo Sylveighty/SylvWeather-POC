@@ -171,7 +171,7 @@ public class AlertService {
         alert.setDescription(description);
         alert.setTimestamp(alertJson.has("start") ? alertJson.get("start").getAsLong() : (System.currentTimeMillis() / 1000));
 
-        // Simple severity heuristic (POC)
+        // Simple severity heuristic (POC).
         String lower = event.toLowerCase();
         if (lower.contains("warning") || lower.contains("severe")) {
             alert.setSeverity("high");

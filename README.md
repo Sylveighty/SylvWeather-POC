@@ -84,6 +84,24 @@ API keys are read from the environment variable OPENWEATHER_API_KEY and must not
 
 ## 7. Getting Started
 
+### Quick Start (copy/paste)
+
+```bash
+# macOS/Linux
+export OPENWEATHER_API_KEY="YOUR_KEY_HERE"
+
+./gradlew build
+./gradlew run
+```
+
+```powershell
+# Windows (PowerShell)
+setx OPENWEATHER_API_KEY "YOUR_KEY_HERE"
+
+gradlew.bat build
+gradlew.bat run
+```
+
 ### Prerequisites
 
 - JDK 17+
@@ -105,6 +123,15 @@ gradle build
 
 ### Run
 gradle run
+
+### Favorites Persistence
+
+Favorites are stored in a simple text file (`favorites.txt`) in the project working directory.  
+To reset favorites, delete the file and restart the app. This is intentionally lightweight for the POC.
+
+### Troubleshooting
+
+- If the API key is missing or invalid, the UI will show a load error and no data will appear.
 
 ## 8. Design Decisions
 

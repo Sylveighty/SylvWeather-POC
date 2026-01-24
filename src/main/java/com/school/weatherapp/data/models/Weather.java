@@ -29,23 +29,23 @@ public class Weather {
     private String temperatureUnit;
     
     // ==================== Weather Conditions ====================
-    private String condition;        // e.g., "Clear", "Clouds", "Rain"
-    private String description;      // e.g., "clear sky", "light rain"
-    private String iconCode;         // OpenWeatherMap icon code
+    private String condition;        // e.g., "Clear", "Clouds", "Rain".
+    private String description;      // e.g., "clear sky", "light rain".
+    private String iconCode;         // OpenWeatherMap icon code.
     
     // ==================== Atmospheric Data ====================
-    private int humidity;            // Percentage
-    private int pressure;            // hPa
-    private int cloudiness;          // Percentage
+    private int humidity;            // Percentage.
+    private int pressure;            // hPa.
+    private int cloudiness;          // Percentage.
     
     // ==================== Wind Data ====================
-    private double windSpeed;        // mph or m/s
-    private int windDirection;       // Degrees
+    private double windSpeed;        // mph or m/s.
+    private int windDirection;       // Degrees.
     
     // ==================== Additional Data ====================
     private int uvIndex;
-    private double precipitation;    // mm
-    private long timestamp;          // Unix timestamp
+    private double precipitation;    // mm.
+    private long timestamp;          // Unix timestamp.
     
     // ==================== Constructors ====================
     
