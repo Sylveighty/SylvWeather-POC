@@ -104,13 +104,8 @@ public class MainApp extends Application {
     }
 
     private void attachStylesheets(Scene scene) {
-        String lightUrl = getClass().getResource(THEME_LIGHT) != null
-            ? getClass().getResource(THEME_LIGHT).toExternalForm()
-            : null;
-
-        String darkUrl = getClass().getResource(THEME_DARK) != null
-            ? getClass().getResource(THEME_DARK).toExternalForm()
-            : null;
+        String lightUrl = resolveStylesheetUrl(THEME_LIGHT);
+        String darkUrl = resolveStylesheetUrl(THEME_DARK);
 
         if (lightUrl == null || darkUrl == null) {
             // If CSS is missing, fail silently for POC (UI still runs with defaults).
@@ -243,13 +238,8 @@ public class MainApp extends Application {
     private void applyTheme(boolean dark) {
         if (scene == null) return;
 
-        String lightUrl = getClass().getResource(THEME_LIGHT) != null
-            ? getClass().getResource(THEME_LIGHT).toExternalForm()
-            : null;
-
-        String darkUrl = getClass().getResource(THEME_DARK) != null
-            ? getClass().getResource(THEME_DARK).toExternalForm()
-            : null;
+        String lightUrl = resolveStylesheetUrl(THEME_LIGHT);
+        String darkUrl = resolveStylesheetUrl(THEME_DARK);
 
         if (lightUrl == null || darkUrl == null) return;
 
@@ -287,6 +277,12 @@ public class MainApp extends Application {
         hourlyForecastPanel.loadHourlyForecast(cityName);
         dailyForecastPanel.loadDailyForecast(cityName);
         alertPanel.loadAlerts(cityName);
+    }
+
+    private String resolveStylesheetUrl(String resourcePath) {
+        return getClass().getResource(resourcePath) != null
+            ? getClass().getResource(resourcePath).toExternalForm()
+            : null;
     }
 
     private void refreshAllTemperatures() {
