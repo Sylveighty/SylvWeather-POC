@@ -6,11 +6,11 @@ import com.school.weatherapp.data.services.WeatherService;
 import com.school.weatherapp.features.FavoritesService;
 import com.school.weatherapp.util.DateTimeUtil;
 import com.school.weatherapp.util.TemperatureUtil;
+import com.school.weatherapp.util.ThemeUtil;
+import com.school.weatherapp.util.WeatherEmojiUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -37,18 +37,19 @@ import java.util.function.Consumer;
  */
 public class CurrentWeatherPanel extends VBox {
 
-    // Stylesheets (resource paths)
+    // Stylesheet resource paths.
     private static final String THEME_LIGHT = "/theme.css";
     private static final String THEME_DARK = "/theme-dark.css";
 
-    // Services
+    // Services.
     private final WeatherService weatherService;
     private final FavoritesService favoritesService;
 
-    // UI components
+    // UI components.
     private TextField searchField;
     private Button searchButton;
     private Button favoriteButton;
+    private Label errorLabel;
 
     private Label cityLabel;
     private Label temperatureLabel;
@@ -66,10 +67,10 @@ public class CurrentWeatherPanel extends VBox {
 
     private GridPane detailsGrid;
 
-    // Current weather data
+    // Current weather data.
     private Weather currentWeather;
 
-    // Callbacks
+    // Callbacks.
     private Consumer<String> onCityChangeCallback;
     private Runnable onFavoritesChangeCallback;
 
@@ -77,12 +78,12 @@ public class CurrentWeatherPanel extends VBox {
         this.weatherService = new WeatherService();
         this.favoritesService = new FavoritesService();
 
-        // Layout (no color/typography here; CSS handles that)
+        // Layout (no color/typography here; CSS handles that).
         setPadding(new Insets(20));
         setSpacing(15);
         setMaxWidth(450);
 
-        // Base style class for panel container
+        // Base style class for panel container.
         getStyleClass().add("panel-background");
 
         buildSearchBar();
@@ -90,7 +91,7 @@ public class CurrentWeatherPanel extends VBox {
         buildDetailsGrid();
         buildFooter();
 
-        // Load default city weather
+        // Load default city weather.
         loadWeather(AppConfig.DEFAULT_CITY);
     }
 
@@ -101,7 +102,7 @@ public class CurrentWeatherPanel extends VBox {
      * For CSS-based themes, this ensures theme.css is the last loaded stylesheet.
      */
     public void applyLightTheme() {
-        ensureStylesheetOrder(THEME_LIGHT, THEME_DARK);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_LIGHT, THEME_DARK);
     }
 
     /**
@@ -109,37 +110,7 @@ public class CurrentWeatherPanel extends VBox {
      * For CSS-based themes, this ensures theme-dark.css is the last loaded stylesheet.
      */
     public void applyDarkTheme() {
-        ensureStylesheetOrder(THEME_DARK, THEME_LIGHT);
-    }
-
-    /**
-     * Ensures that:
-     * - both stylesheets are present (if available)
-     * - the "primary" stylesheet is last so it wins cascade
-     */
-    private void ensureStylesheetOrder(String primary, String secondary) {
-        Scene scene = getScene();
-        if (scene == null) {
-            // Panel may not be attached yet; MainApp will call again after layout.
-            return;
-        }
-
-        String primaryUrl = getClass().getResource(primary) != null ? getClass().getResource(primary).toExternalForm() : null;
-        String secondaryUrl = getClass().getResource(secondary) != null ? getClass().getResource(secondary).toExternalForm() : null;
-
-        if (primaryUrl == null || secondaryUrl == null) {
-            return; // Missing resource; fail silently for POC
-        }
-
-        var stylesheets = scene.getStylesheets();
-
-        // Remove if present (we will re-add in correct order)
-        stylesheets.remove(primaryUrl);
-        stylesheets.remove(secondaryUrl);
-
-        // Add secondary first, primary last (primary overrides)
-        stylesheets.add(secondaryUrl);
-        stylesheets.add(primaryUrl);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_DARK, THEME_LIGHT);
     }
 
     // -------------------- Callback Methods --------------------
@@ -155,19 +126,25 @@ public class CurrentWeatherPanel extends VBox {
     // -------------------- UI Building Methods --------------------
 
     private void buildSearchBar() {
+        VBox searchArea = new VBox(6);
+        searchArea.getStyleClass().add("search-area");
+
         HBox searchBar = new HBox(10);
-        searchBar.setAlignment(Pos.CENTER);
+        searchBar.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
         searchField.setPromptText("Enter city name...");
         searchField.setPrefWidth(220);
-        // JavaFX TextField already has "text-field"; keep it and optionally add more if desired
+        searchField.setAccessibleText("City search input");
+        // JavaFX TextField already has "text-field"; keep it and optionally add more if desired.
 
         searchButton = new Button("Search");
         searchButton.getStyleClass().add("search-button");
+        searchButton.setAccessibleText("Search for city weather");
 
         favoriteButton = new Button("☆ Add to Favorites");
-        // Default state: add
+        favoriteButton.setAccessibleText("Add city to favorites");
+        // Default state: add.
         setFavoriteButtonState(false);
 
         searchButton.setOnAction(e -> handleSearch());
@@ -175,7 +152,13 @@ public class CurrentWeatherPanel extends VBox {
         favoriteButton.setOnAction(e -> handleFavoriteToggle());
 
         searchBar.getChildren().addAll(searchField, searchButton, favoriteButton);
-        getChildren().add(searchBar);
+
+        errorLabel = new Label();
+        errorLabel.getStyleClass().add("input-error");
+        errorLabel.setVisible(false);
+
+        searchArea.getChildren().addAll(searchBar, errorLabel);
+        getChildren().add(searchArea);
     }
 
     private void buildMainDisplay() {
@@ -222,25 +205,25 @@ public class CurrentWeatherPanel extends VBox {
         detailsGrid.setPadding(new Insets(10));
         detailsGrid.getStyleClass().add("panel-content");
 
-        // Feels Like
+        // Feels like.
         Label feelsLikeTitle = createDetailTitle("Feels Like");
         feelsLikeLabel = createDetailValue("--°");
         detailsGrid.add(feelsLikeTitle, 0, 0);
         detailsGrid.add(feelsLikeLabel, 0, 1);
 
-        // Humidity
+        // Humidity.
         Label humidityTitle = createDetailTitle("Humidity");
         humidityLabel = createDetailValue("--%");
         detailsGrid.add(humidityTitle, 1, 0);
         detailsGrid.add(humidityLabel, 1, 1);
 
-        // Wind
+        // Wind.
         Label windTitle = createDetailTitle("Wind Speed");
         windLabel = createDetailValue("-- mph");
         detailsGrid.add(windTitle, 0, 2);
         detailsGrid.add(windLabel, 0, 3);
 
-        // Pressure
+        // Pressure.
         Label pressureTitle = createDetailTitle("Pressure");
         pressureLabel = createDetailValue("-- hPa");
         detailsGrid.add(pressureTitle, 1, 2);
@@ -275,9 +258,12 @@ public class CurrentWeatherPanel extends VBox {
     private void handleSearch() {
         String city = searchField.getText().trim();
         if (!city.isEmpty()) {
+            clearError();
             loadWeather(city);
             searchField.clear();
+            return;
         }
+        showError("City can't be empty.");
     }
 
     private void handleFavoriteToggle() {
@@ -292,7 +278,7 @@ public class CurrentWeatherPanel extends VBox {
             favoritesService.addFavorite(cityName);
         }
 
-        // Update button UI
+        // Update button UI.
         setFavoriteButtonState(!isFavorite);
 
         if (onFavoritesChangeCallback != null) {
@@ -301,7 +287,7 @@ public class CurrentWeatherPanel extends VBox {
     }
 
     private void setFavoriteButtonState(boolean isFavorite) {
-        // Remove both state classes first
+        // Remove both state classes first.
         favoriteButton.getStyleClass().remove("favorite-add");
         favoriteButton.getStyleClass().remove("favorite-remove");
 
@@ -325,12 +311,17 @@ public class CurrentWeatherPanel extends VBox {
         Platform.runLater(() -> {
             loadingIndicator.setVisible(true);
             searchButton.setDisable(true);
+            searchField.setDisable(true);
+            favoriteButton.setDisable(true);
+            clearError();
         });
 
         weatherService.getCurrentWeatherAsync(cityName)
             .thenAccept(weather -> Platform.runLater(() -> {
                 loadingIndicator.setVisible(false);
                 searchButton.setDisable(false);
+                searchField.setDisable(false);
+                favoriteButton.setDisable(false);
 
                 if (weather != null) {
                     currentWeather = weather;
@@ -342,21 +333,21 @@ public class CurrentWeatherPanel extends VBox {
     }
 
     private void updateDisplay(Weather weather) {
-        // City
+        // City.
         cityLabel.setText(weather.getFullLocation());
 
-        // Temperature (uses the unit in AppConfig at time of fetch)
+        // Temperature (uses the unit in AppConfig at time of fetch).
         String tempUnit = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "°F" : "°C";
         temperatureLabel.setText(String.format("%.0f%s", weather.getTemperature(), tempUnit));
 
-        // Condition + description
+        // Condition and description.
         conditionLabel.setText(weather.getCondition());
         descriptionLabel.setText(capitalize(weather.getDescription()));
 
-        // Icon
-        weatherIcon.setText(getWeatherEmoji(weather.getCondition()));
+        // Icon.
+        weatherIcon.setText(WeatherEmojiUtil.emojiForCondition(weather.getCondition()));
 
-        // Details
+        // Details.
         feelsLikeLabel.setText(String.format("%.0f%s", weather.getFeelsLike(), tempUnit));
         humidityLabel.setText(weather.getHumidity() + "%");
 
@@ -369,42 +360,30 @@ public class CurrentWeatherPanel extends VBox {
 
         pressureLabel.setText(weather.getPressure() + " hPa");
 
-        // Timestamp
+        // Timestamp.
         String timestamp = DateTimeUtil.formatDateTime(weather.getTimestamp());
         lastUpdatedLabel.setText("Last updated: " + timestamp);
 
-        // Favorites button
+        // Favorites button.
         updateFavoriteButtonState(weather.getCityName());
 
-        // Notify city change
+        // Notify city change.
         if (onCityChangeCallback != null) {
             onCityChangeCallback.accept(weather.getCityName());
         }
     }
 
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("Weather Data Error");
-        alert.setContentText(message);
-        alert.showAndWait();
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
+    }
+
+    private void clearError() {
+        errorLabel.setText("");
+        errorLabel.setVisible(false);
     }
 
     // -------------------- Utility Methods --------------------
-
-    private String getWeatherEmoji(String condition) {
-        if (condition == null) return "◐";
-        return switch (condition.toLowerCase()) {
-            case "clear" -> "☀";
-            case "clouds" -> "☁";
-            case "rain" -> "⛈";
-            case "drizzle" -> "☔";
-            case "thunderstorm" -> "⚡";
-            case "snow" -> "❄";
-            case "mist", "fog" -> "≈";
-            default -> "◐";
-        };
-    }
 
     private String capitalize(String text) {
         if (text == null || text.isBlank()) return "";
@@ -447,7 +426,7 @@ public class CurrentWeatherPanel extends VBox {
             (("imperial".equalsIgnoreCase(weather.getTemperatureUnit()) && !isImperial) ||
              ("metric".equalsIgnoreCase(weather.getTemperatureUnit()) && isImperial));
 
-        // Temperature
+        // Temperature.
         double tempValue;
         if (needConversion) {
             tempValue = "imperial".equalsIgnoreCase(weather.getTemperatureUnit())
@@ -460,7 +439,7 @@ public class CurrentWeatherPanel extends VBox {
         String tempUnit = isImperial ? "°F" : "°C";
         temperatureLabel.setText(String.format("%.0f%s", tempValue, tempUnit));
 
-        // Feels like
+        // Feels like.
         double feelsLikeValue;
         if (needConversion) {
             feelsLikeValue = "imperial".equalsIgnoreCase(weather.getTemperatureUnit())
@@ -471,11 +450,11 @@ public class CurrentWeatherPanel extends VBox {
         }
         feelsLikeLabel.setText(String.format("%.0f%s", feelsLikeValue, tempUnit));
 
-        // Wind speed
+        // Wind speed.
         String windUnit = isImperial ? "mph" : "m/s";
         double windSpeedValue;
         if (needConversion) {
-            // mph <-> m/s conversion
+            // mph <-> m/s conversion.
             windSpeedValue = "imperial".equalsIgnoreCase(weather.getTemperatureUnit())
                 ? (weather.getWindSpeed() / 2.237)
                 : (weather.getWindSpeed() * 2.237);

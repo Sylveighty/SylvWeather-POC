@@ -28,7 +28,7 @@ public class FavoritesService {
      */
     public FavoritesService() {
         this.favoritesFilePath = AppConfig.FAVORITES_FILE_PATH;
-        this.favoriteCities = new LinkedHashSet<>(); // Preserve order
+        this.favoriteCities = new LinkedHashSet<>(); // Preserve order.
         loadFavorites();
     }
 

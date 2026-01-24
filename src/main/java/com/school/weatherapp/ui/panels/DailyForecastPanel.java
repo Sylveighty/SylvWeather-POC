@@ -3,10 +3,11 @@ package com.school.weatherapp.ui.panels;
 import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
 import com.school.weatherapp.util.TemperatureUtil;
+import com.school.weatherapp.util.ThemeUtil;
+import com.school.weatherapp.util.WeatherEmojiUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
@@ -57,27 +58,11 @@ public class DailyForecastPanel extends VBox {
     // -------------------- Theme Methods --------------------
 
     public void applyLightTheme() {
-        ensureStylesheetOrder(THEME_LIGHT, THEME_DARK);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_LIGHT, THEME_DARK);
     }
 
     public void applyDarkTheme() {
-        ensureStylesheetOrder(THEME_DARK, THEME_LIGHT);
-    }
-
-    private void ensureStylesheetOrder(String primary, String secondary) {
-        Scene scene = getScene();
-        if (scene == null) return;
-
-        String primaryUrl = getClass().getResource(primary) != null ? getClass().getResource(primary).toExternalForm() : null;
-        String secondaryUrl = getClass().getResource(secondary) != null ? getClass().getResource(secondary).toExternalForm() : null;
-
-        if (primaryUrl == null || secondaryUrl == null) return;
-
-        var stylesheets = scene.getStylesheets();
-        stylesheets.remove(primaryUrl);
-        stylesheets.remove(secondaryUrl);
-        stylesheets.add(secondaryUrl);
-        stylesheets.add(primaryUrl);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_DARK, THEME_LIGHT);
     }
 
     // -------------------- UI Build --------------------
@@ -116,7 +101,7 @@ public class DailyForecastPanel extends VBox {
                     showError();
                 } else {
                     currentDailyForecasts = forecasts;
-                    refreshDailyCards(false); // default; MainApp unit toggle will call refreshTemperatures(...)
+                    refreshDailyCards(false); // Default; MainApp unit toggle will call refreshTemperatures(...).
                 }
             }));
     }
@@ -163,23 +148,23 @@ public class DailyForecastPanel extends VBox {
         row.setPadding(new Insets(12));
         row.getStyleClass().add("forecast-card");
 
-        // Day label
+        // Day label.
         Label dayLabel = new Label(daily.getDayOfWeek() != null ? daily.getDayOfWeek() : "--");
         dayLabel.getStyleClass().add("label-primary");
         dayLabel.setMinWidth(70);
 
-        // Icon
-        Text icon = new Text(getWeatherEmoji(daily.getCondition()));
+        // Icon.
+        Text icon = new Text(WeatherEmojiUtil.emojiForCondition(daily.getCondition()));
         icon.getStyleClass().add("weather-icon");
         icon.setStyle("-fx-font-size: 26px;");
 
-        // Condition text (optional)
+        // Condition text (optional).
         Label condLabel = new Label(daily.getCondition() != null ? daily.getCondition() : "");
         condLabel.getStyleClass().add("label-secondary");
         condLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(condLabel, Priority.ALWAYS);
 
-        // Min/Max temperatures
+        // Min/max temperatures.
         String rangeText = formatTempRange(daily, isImperial);
         Label rangeLabel = new Label(rangeText);
         rangeLabel.getStyleClass().add("label-primary");
@@ -222,17 +207,4 @@ public class DailyForecastPanel extends VBox {
         refreshDailyCards(isImperial);
     }
 
-    private String getWeatherEmoji(String condition) {
-        if (condition == null) return "◐";
-        return switch (condition.toLowerCase()) {
-            case "clear" -> "☀";
-            case "clouds" -> "☁";
-            case "rain" -> "⛈";
-            case "drizzle" -> "☔";
-            case "thunderstorm" -> "⚡";
-            case "snow" -> "❄";
-            case "mist", "fog" -> "≈";
-            default -> "◐";
-        };
-    }
 }

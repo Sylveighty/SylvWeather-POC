@@ -15,28 +15,28 @@ package com.school.weatherapp.data.models;
 public class Forecast {
     
     // ==================== Timing Information ====================
-    private long timestamp;           // Unix timestamp
-    private String dayOfWeek;         // e.g., "Monday", "Tuesday"
-    private String timeLabel;         // e.g., "3:00 PM" for hourly, "Mon" for daily
+    private long timestamp;           // Unix timestamp.
+    private String dayOfWeek;         // e.g., "Monday", "Tuesday".
+    private String timeLabel;         // e.g., "3:00 PM" for hourly, "Mon" for daily.
     
     // ==================== Temperature Data ====================
-    private double temperature;       // Main temperature
-    private double tempMin;           // Minimum temperature (daily)
-    private double tempMax;           // Maximum temperature (daily)
-    private double feelsLike;         // Feels like temperature
+    private double temperature;       // Main temperature.
+    private double tempMin;           // Minimum temperature (daily).
+    private double tempMax;           // Maximum temperature (daily).
+    private double feelsLike;         // Feels like temperature.
     
     /** Track the unit system this forecast data was fetched with ("imperial" or "metric") */
     private String temperatureUnit;
     
     // ==================== Weather Conditions ====================
-    private String condition;         // e.g., "Clear", "Rain"
-    private String description;       // e.g., "clear sky"
-    private String iconCode;          // Weather icon code
+    private String condition;         // e.g., "Clear", "Rain".
+    private String description;       // e.g., "clear sky".
+    private String iconCode;          // Weather icon code.
     
     // ==================== Additional Data ====================
-    private int humidity;             // Percentage
-    private double windSpeed;         // mph or m/s
-    private int precipitation;        // Percentage chance (0-100)
+    private int humidity;             // Percentage.
+    private double windSpeed;         // mph or m/s.
+    private int precipitation;        // Percentage chance (0-100).
     
     // ==================== Constructors ====================
     

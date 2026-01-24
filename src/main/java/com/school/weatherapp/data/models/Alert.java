@@ -13,7 +13,7 @@ public class Alert {
     private String type;           // "storm", "wind", "flood", etc.
     private String title;
     private String description;
-    private String severity;       // "low", "medium", "high"
+    private String severity;       // "low", "medium", "high".
     private long timestamp;
     
     // ==================== Constructors ====================
