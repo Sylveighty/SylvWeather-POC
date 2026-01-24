@@ -1,6 +1,7 @@
 package com.school.weatherapp.app;
 
 import com.school.weatherapp.config.AppConfig;
+import com.school.weatherapp.features.FavoritesService;
 import com.school.weatherapp.ui.panels.AlertPanel;
 import com.school.weatherapp.ui.panels.CurrentWeatherPanel;
 import com.school.weatherapp.ui.panels.DailyForecastPanel;
@@ -181,8 +182,9 @@ public class MainApp extends Application {
     }
 
     private void initializePanels() {
-        currentWeatherPanel = new CurrentWeatherPanel();
-        favoritesPanel = new FavoritesPanel();
+        FavoritesService favoritesService = new FavoritesService();
+        currentWeatherPanel = new CurrentWeatherPanel(favoritesService);
+        favoritesPanel = new FavoritesPanel(favoritesService);
         hourlyForecastPanel = new HourlyForecastPanel();
         dailyForecastPanel = new DailyForecastPanel();
         alertPanel = new AlertPanel();

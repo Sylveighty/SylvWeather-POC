@@ -40,8 +40,8 @@ public class FavoritesPanel extends VBox {
     private Label headerLabel;
     private ScrollPane scrollPane;
 
-    public FavoritesPanel() {
-        this.favoritesService = new FavoritesService();
+    public FavoritesPanel(FavoritesService favoritesService) {
+        this.favoritesService = favoritesService;
 
         setPadding(new Insets(20));
         setSpacing(15);
