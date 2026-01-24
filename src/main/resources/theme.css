@@ -3,7 +3,7 @@
 /* Root styling */
 .root {
     -fx-font-family: "System";
-    -fx-font-size: 12;
+    -fx-font-size: 13;
     -fx-background-color: #e8eaf6;
 }
 
@@ -12,32 +12,51 @@
     -fx-background-color: #e8eaf6;
 }
 
+/* Top bar */
+.top-bar {
+    -fx-background-color: transparent;
+}
+
+.toast-banner {
+    -fx-background-color: rgba(25, 118, 210, 0.12);
+    -fx-text-fill: #1565c0;
+    -fx-padding: 8 14;
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(25, 118, 210, 0.4);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+}
+
 /* Panel backgrounds */
 .panel-background {
     -fx-background-color: #f5f5f5;
     -fx-background-radius: 10;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
 }
 
 .panel-content {
     -fx-background-color: white;
     -fx-background-radius: 8;
+    -fx-padding: 16;
 }
 
 /* Typography */
 .title-text {
-    -fx-font-size: 22;
+    -fx-font-size: 20;
     -fx-font-weight: bold;
     -fx-text-fill: #333;
 }
 
 .section-title {
-    -fx-font-size: 18;
+    -fx-font-size: 17;
     -fx-font-weight: bold;
     -fx-text-fill: #555;
 }
 
 .label-primary {
-    -fx-font-size: 14;
+    -fx-font-size: 13;
     -fx-text-fill: #333;
 }
 
@@ -53,25 +72,25 @@
 
 /* Weather panel specific */
 .city-label {
-    -fx-font-size: 28;
+    -fx-font-size: 26;
     -fx-font-weight: bold;
     -fx-text-fill: #333;
 }
 
 .temperature-large {
-    -fx-font-size: 72;
+    -fx-font-size: 68;
     -fx-font-weight: bold;
     -fx-text-fill: #333;
 }
 
 .condition-label {
-    -fx-font-size: 20;
+    -fx-font-size: 18;
     -fx-font-weight: bold;
     -fx-text-fill: #666;
 }
 
 .description-label {
-    -fx-font-size: 16;
+    -fx-font-size: 14;
     -fx-text-fill: #888;
 }
 
@@ -87,13 +106,13 @@
 }
 
 .detail-value {
-    -fx-font-size: 18;
+    -fx-font-size: 16;
     -fx-font-weight: bold;
     -fx-text-fill: #333;
 }
 
 .weather-icon {
-    -fx-font-size: 80px;
+    -fx-font-size: 70px;
     -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
 }
 
@@ -115,17 +134,17 @@
 
 /* Button styling */
 .button {
-    -fx-padding: 10 20 10 20;
+    -fx-padding: 10 18 10 18;
     -fx-font-size: 14;
     -fx-background-color: #1976d2;
     -fx-text-fill: white;
-    -fx-background-radius: 6;
+    -fx-background-radius: 8;
     -fx-cursor: hand;
 }
 
 .button:hover {
     -fx-background-color: #1565c0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 6, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(21, 101, 192, 0.25), 10, 0, 0, 2);
 }
 
 .button:pressed {
@@ -135,7 +154,7 @@
 /* Small pill buttons (top-right toggles) */
 .pill-button {
     -fx-font-size: 13;
-    -fx-padding: 10 18;
+    -fx-padding: 8 16;
     -fx-font-weight: bold;
     -fx-text-fill: white;
     -fx-cursor: hand;
@@ -159,7 +178,7 @@
 /* Text field styling */
 .text-field {
     -fx-padding: 10;
-    -fx-border-radius: 6;
+    -fx-border-radius: 8;
     -fx-border-color: #ccc;
     -fx-border-width: 1;
     -fx-background-color: white;
@@ -172,6 +191,15 @@
     -fx-effect: dropshadow(gaussian, rgba(25, 118, 210, 0.3), 6, 0, 0, 0);
 }
 
+.search-area {
+    -fx-background-color: transparent;
+}
+
+.input-error {
+    -fx-text-fill: #d32f2f;
+    -fx-font-size: 11;
+}
+
 /* Progress indicator */
 .progress-indicator {
     -fx-progress-color: #1976d2;
@@ -180,15 +208,15 @@
 /* Forecast cards */
 .forecast-card {
     -fx-background-color: #fafafa;
-    -fx-background-radius: 8;
+    -fx-background-radius: 12;
     -fx-border-color: #e0e0e0;
     -fx-border-width: 1;
     -fx-padding: 15;
 }
 
 .forecast-card:hover {
-    -fx-background-color: #f0f0f0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
+    -fx-background-color: #f0f3ff;
+    -fx-effect: dropshadow(gaussian, rgba(25, 118, 210, 0.12), 12, 0, 0, 2);
 }
 
 /* Scroll pane */
