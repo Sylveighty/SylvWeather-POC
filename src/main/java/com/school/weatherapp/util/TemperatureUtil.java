@@ -21,7 +21,7 @@ public class TemperatureUtil {
     // ==================== Temperature Unit Enumeration ====================
     
     /**
-     * Temperature units enumeration
+     * Temperature units enumeration.
      */
     public enum Unit {
         CELSIUS("°C"),
@@ -42,10 +42,10 @@ public class TemperatureUtil {
     // ==================== Constructors ====================
     
     /**
-     * Private constructor to prevent instantiation
+     * Private constructor to prevent instantiation.
      */
     private TemperatureUtil() {
-        // Utility class
+        // Utility class.
     }
 
     // ==================== Temperature Conversion Methods ====================
@@ -123,7 +123,7 @@ public class TemperatureUtil {
             return temperature;
         }
 
-        // Convert to Celsius first, then to target unit
+        // Convert to Celsius first, then to target unit.
         double celsius = switch (fromUnit) {
             case CELSIUS -> temperature;
             case FAHRENHEIT -> fahrenheitToCelsius(temperature);
@@ -214,15 +214,15 @@ public class TemperatureUtil {
      * @return Wind chill temperature in Celsius
      */
     public static double calculateWindChill(double temperature, double windSpeed) {
-        // Convert wind speed to km/h for the formula
+        // Convert wind speed to km/h for the formula.
         double windSpeedKmh = windSpeed * 3.6;
 
         if (temperature > 10 || windSpeedKmh < 4.8) {
-            return temperature; // Wind chill not applicable
+            return temperature; // Wind chill not applicable.
         }
 
-        // Wind chill formula: T_wc = 13.12 + 0.6215*T - 11.37*V^0.16 + 0.3965*T*V^0.16
-        // Where T is temperature in Celsius, V is wind speed in km/h
+        // Wind chill formula: T_wc = 13.12 + 0.6215*T - 11.37*V^0.16 + 0.3965*T*V^0.16.
+        // Where T is temperature in Celsius, V is wind speed in km/h.
         double windSpeedPower = Math.pow(windSpeedKmh, 0.16);
         return 13.12 + (0.6215 * temperature) - (11.37 * windSpeedPower) +
                (0.3965 * temperature * windSpeedPower);
@@ -237,13 +237,13 @@ public class TemperatureUtil {
      */
     public static double calculateHeatIndex(double temperature, double humidity) {
         if (temperature < 27) {
-            return temperature; // Heat index not applicable for cool temperatures
+            return temperature; // Heat index not applicable for cool temperatures.
         }
 
-        // Convert to Fahrenheit for the formula
+        // Convert to Fahrenheit for the formula.
         double tempF = celsiusToFahrenheit(temperature);
 
-        // Heat index formula (simplified)
+        // Heat index formula (simplified).
         double heatIndexF = -42.379 + (2.04901523 * tempF) + (10.14333127 * humidity) -
                            (0.22475541 * tempF * humidity) - (0.00683783 * tempF * tempF) -
                            (0.05481717 * humidity * humidity) + (0.00122874 * tempF * tempF * humidity) +

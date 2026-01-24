@@ -121,7 +121,7 @@ public class ForecastService {
             forecasts.add(createForecastFromJson(item, units));
         }
 
-        // Ensure chronological order
+        // Ensure chronological order.
         forecasts.sort(Comparator.comparingLong(Forecast::getTimestamp));
         return forecasts;
     }
@@ -212,22 +212,22 @@ public class ForecastService {
     }
 
     private Forecast createDailyForecast(LocalDate date, List<Forecast> dayForecasts) {
-        // Day forecasts should be chronological
+        // Day forecasts should be chronological.
         dayForecasts.sort(Comparator.comparingLong(Forecast::getTimestamp));
 
         Forecast first = dayForecasts.get(0);
         Forecast daily = new Forecast();
 
-        // Labels
+        // Labels.
         DateTimeFormatter dayLabel = DateTimeFormatter.ofPattern("EEE");
         daily.setDayOfWeek(dayLabel.format(date));
         daily.setTimeLabel(dayLabel.format(date));
 
-        // Baseline properties
+        // Baseline properties.
         daily.setTimestamp(first.getTimestamp());
         daily.setTemperatureUnit(first.getTemperatureUnit());
 
-        // Min/max range
+        // Min/max range.
         double minTemp = dayForecasts.stream().mapToDouble(Forecast::getTempMin).min().orElse(first.getTempMin());
         double maxTemp = dayForecasts.stream().mapToDouble(Forecast::getTempMax).max().orElse(first.getTempMax());
 
@@ -235,13 +235,13 @@ public class ForecastService {
         daily.setTempMax(maxTemp);
         daily.setTemperature((minTemp + maxTemp) / 2);
 
-        // Pick a representative condition near the middle of the day list
+        // Pick a representative condition near the middle of the day list.
         Forecast representative = dayForecasts.get(dayForecasts.size() / 2);
         daily.setCondition(representative.getCondition());
         daily.setDescription(representative.getDescription());
         daily.setIconCode(representative.getIconCode());
 
-        // Average humidity and wind
+        // Average humidity and wind.
         double avgHumidity = dayForecasts.stream().mapToInt(Forecast::getHumidity).average().orElse(first.getHumidity());
         daily.setHumidity((int) avgHumidity);
 

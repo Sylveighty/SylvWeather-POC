@@ -7,16 +7,18 @@ import com.school.weatherapp.ui.panels.DailyForecastPanel;
 import com.school.weatherapp.ui.panels.FavoritesPanel;
 import com.school.weatherapp.ui.panels.HourlyForecastPanel;
 import javafx.application.Application;
+import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import javafx.stage.Stage;
 
 /**
@@ -36,22 +38,23 @@ public class MainApp extends Application {
     private static final int WINDOW_HEIGHT = 900;
     private static final String APP_TITLE = "Weather Dashboard (POC)";
 
-    // Stylesheet resources
+    // Stylesheet resources.
     private static final String THEME_LIGHT = "/theme.css";
     private static final String THEME_DARK = "/theme-dark.css";
 
     private BorderPane root;
     private ScrollPane scrollPane;
     private Scene scene;
+    private Label toastLabel;
 
-    // Panels
+    // Panels.
     private CurrentWeatherPanel currentWeatherPanel;
     private FavoritesPanel favoritesPanel;
     private HourlyForecastPanel hourlyForecastPanel;
     private DailyForecastPanel dailyForecastPanel;
     private AlertPanel alertPanel;
 
-    // Global state
+    // Global state.
     private boolean darkThemeEnabled = false;
 
     // Your project already uses AppConfig.TEMPERATURE_UNIT as the default preference.
@@ -69,27 +72,27 @@ public class MainApp extends Application {
         root = new BorderPane();
         root.getStyleClass().add("main-container");
 
-        // Top controls
+        // Top controls.
         root.setTop(createTopBar());
 
-        // Panels
+        // Panels.
         initializePanels();
 
-        // Layout composition
+        // Layout composition.
         VBox mainLayout = createMainLayout();
 
         scrollPane = new ScrollPane(mainLayout);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(false);
 
-        // Keep scroll pane visually clean; colors come from CSS
+        // Keep scroll pane visually clean; colors come from CSS.
         scrollPane.getStyleClass().add("scroll-pane");
 
         root.setCenter(scrollPane);
 
         scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        // Attach stylesheets (both), then apply initial theme order
+        // Attach stylesheets (both), then apply initial theme order.
         attachStylesheets(scene);
         applyTheme(darkThemeEnabled);
 
@@ -115,26 +118,40 @@ public class MainApp extends Application {
             return;
         }
 
-        // Add both; ordering is controlled in applyTheme(...)
+        // Add both; ordering is controlled in applyTheme(...).
         scene.getStylesheets().add(lightUrl);
         scene.getStylesheets().add(darkUrl);
     }
 
     private HBox createTopBar() {
-        HBox topBar = new HBox(10);
-        topBar.setAlignment(Pos.TOP_RIGHT);
-        topBar.setPadding(new Insets(10, 20, 0, 0));
+        HBox topBar = new HBox(12);
+        topBar.getStyleClass().add("top-bar");
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(16, 24, 8, 24));
+
+        Label title = new Label(APP_TITLE);
+        title.getStyleClass().add("title-text");
+
+        toastLabel = new Label();
+        toastLabel.getStyleClass().add("toast-banner");
+        toastLabel.setVisible(false);
+        HBox.setHgrow(toastLabel, Priority.ALWAYS);
+        toastLabel.setMaxWidth(Double.MAX_VALUE);
 
         Button unitToggle = createUnitToggleButton();
         Button themeToggle = createThemeToggleButton();
 
-        topBar.getChildren().addAll(unitToggle, themeToggle);
+        HBox actionButtons = new HBox(10, unitToggle, themeToggle);
+        actionButtons.setAlignment(Pos.CENTER_RIGHT);
+
+        topBar.getChildren().addAll(title, toastLabel, actionButtons);
         return topBar;
     }
 
     private Button createUnitToggleButton() {
         Button unitToggle = new Button(isImperial ? "°F" : "°C");
         unitToggle.getStyleClass().add("pill-button");
+        unitToggle.setAccessibleText("Toggle temperature unit");
         // Keep this blue in both themes for clarity (optional). If you prefer, move to CSS.
         unitToggle.setStyle("-fx-background-color: #2196F3;");
 
@@ -152,6 +169,7 @@ public class MainApp extends Application {
     private Button createThemeToggleButton() {
         Button themeToggle = new Button(darkThemeEnabled ? "Light" : "Dark");
         themeToggle.getStyleClass().add("pill-button");
+        themeToggle.setAccessibleText("Toggle light or dark theme");
         // Color indicates action: if currently light, show dark button, etc.
         themeToggle.setStyle("-fx-background-color: #1976d2;");
 
@@ -160,7 +178,7 @@ public class MainApp extends Application {
             applyTheme(darkThemeEnabled);
 
             themeToggle.setText(darkThemeEnabled ? "Light" : "Dark");
-            // Change button color for visual feedback
+            // Change button color for visual feedback.
             themeToggle.setStyle("-fx-background-color: " + (darkThemeEnabled ? "#FF9800" : "#1976d2") + ";");
         });
 
@@ -180,7 +198,7 @@ public class MainApp extends Application {
         mainLayout.setPadding(new Insets(20));
         mainLayout.setAlignment(Pos.TOP_CENTER);
 
-        // Top section: current + favorites
+        // Top section: current + favorites.
         HBox topSection = new HBox(20);
         topSection.setAlignment(Pos.TOP_CENTER);
 
@@ -189,7 +207,7 @@ public class MainApp extends Application {
 
         topSection.getChildren().addAll(currentWeatherPanel, favoritesPanel);
 
-        // Forecast/alert panels should stretch
+        // Forecast/alert panels should stretch.
         alertPanel.setMaxWidth(Double.MAX_VALUE);
         hourlyForecastPanel.setMaxWidth(Double.MAX_VALUE);
         dailyForecastPanel.setMaxWidth(Double.MAX_VALUE);
@@ -237,7 +255,7 @@ public class MainApp extends Application {
 
         var stylesheets = scene.getStylesheets();
 
-        // Remove and re-add in correct order
+        // Remove and re-add in correct order.
         stylesheets.remove(lightUrl);
         stylesheets.remove(darkUrl);
 
@@ -278,11 +296,16 @@ public class MainApp extends Application {
     }
 
     private void showUnitChangeMessage(String newUnit) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Unit Changed");
-        alert.setHeaderText("Temperature Units Updated");
-        alert.setContentText("Temperature units have been switched to " + newUnit + ".");
-        alert.showAndWait();
+        if (toastLabel == null) {
+            return;
+        }
+
+        toastLabel.setText("Temperature units switched to " + newUnit + ".");
+        toastLabel.setVisible(true);
+
+        PauseTransition pause = new PauseTransition(Duration.seconds(3));
+        pause.setOnFinished(event -> toastLabel.setVisible(false));
+        pause.playFromStart();
     }
 
     public static void main(String[] args) {

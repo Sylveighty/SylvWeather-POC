@@ -3,10 +3,11 @@ package com.school.weatherapp.ui.panels;
 import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
 import com.school.weatherapp.util.TemperatureUtil;
+import com.school.weatherapp.util.ThemeUtil;
+import com.school.weatherapp.util.WeatherEmojiUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
@@ -46,7 +47,7 @@ public class HourlyForecastPanel extends VBox {
         setPadding(new Insets(20));
         setSpacing(15);
 
-        // Panel styling
+        // Panel styling.
         getStyleClass().add("panel-background");
 
         buildTitle();
@@ -58,27 +59,11 @@ public class HourlyForecastPanel extends VBox {
     // -------------------- Theme Methods --------------------
 
     public void applyLightTheme() {
-        ensureStylesheetOrder(THEME_LIGHT, THEME_DARK);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_LIGHT, THEME_DARK);
     }
 
     public void applyDarkTheme() {
-        ensureStylesheetOrder(THEME_DARK, THEME_LIGHT);
-    }
-
-    private void ensureStylesheetOrder(String primary, String secondary) {
-        Scene scene = getScene();
-        if (scene == null) return;
-
-        String primaryUrl = getClass().getResource(primary) != null ? getClass().getResource(primary).toExternalForm() : null;
-        String secondaryUrl = getClass().getResource(secondary) != null ? getClass().getResource(secondary).toExternalForm() : null;
-
-        if (primaryUrl == null || secondaryUrl == null) return;
-
-        var stylesheets = scene.getStylesheets();
-        stylesheets.remove(primaryUrl);
-        stylesheets.remove(secondaryUrl);
-        stylesheets.add(secondaryUrl);
-        stylesheets.add(primaryUrl);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_DARK, THEME_LIGHT);
     }
 
     // -------------------- UI Build --------------------
@@ -90,7 +75,7 @@ public class HourlyForecastPanel extends VBox {
     }
 
     private void buildForecastContainer() {
-        // Inner container (background comes from CSS)
+        // Inner container (background comes from CSS).
         containerBox = new VBox();
         containerBox.setPadding(new Insets(20));
         containerBox.getStyleClass().add("panel-content");
@@ -118,7 +103,7 @@ public class HourlyForecastPanel extends VBox {
                     showError();
                 } else {
                     currentForecasts = forecasts;
-                    refreshForecastCards(false); // default if MainApp hasn't toggled yet
+                    refreshForecastCards(false); // Default if MainApp hasn't toggled yet.
                 }
             }));
     }
@@ -165,17 +150,17 @@ public class HourlyForecastPanel extends VBox {
         card.setPadding(new Insets(12));
         card.setPrefWidth(90);
 
-        // Card styling comes from CSS (including hover effect)
+        // Card styling comes from CSS (including hover effect).
         card.getStyleClass().add("forecast-card");
 
         Label timeLabel = new Label(forecast.getTimeLabel());
         timeLabel.getStyleClass().add("label-secondary");
 
-        Text icon = new Text(getWeatherEmoji(forecast.getCondition()));
+        Text icon = new Text(WeatherEmojiUtil.emojiForCondition(forecast.getCondition()));
         icon.getStyleClass().add("weather-icon");
-        icon.setStyle("-fx-font-size: 32px;"); // keep size local; the emoji font family is in CSS
+        icon.setStyle("-fx-font-size: 32px;"); // Keep size local; the emoji font family is in CSS.
 
-        // Determine if conversion is needed
+        // Determine if conversion is needed.
         boolean needConversion = forecast.getTemperatureUnit() != null &&
             (("imperial".equalsIgnoreCase(forecast.getTemperatureUnit()) && !isImperial) ||
              ("metric".equalsIgnoreCase(forecast.getTemperatureUnit()) && isImperial));
@@ -199,7 +184,7 @@ public class HourlyForecastPanel extends VBox {
 
         if (forecast.getPrecipitation() > 0) {
             Label precip = new Label(forecast.getPrecipitation() + "%");
-            // Use subtle label; the theme controls text color
+            // Use subtle label; the theme controls text color.
             precip.getStyleClass().add("label-subtle");
             card.getChildren().add(precip);
         }
@@ -216,17 +201,4 @@ public class HourlyForecastPanel extends VBox {
         refreshForecastCards(isImperial);
     }
 
-    private String getWeatherEmoji(String condition) {
-        if (condition == null) return "◐";
-        return switch (condition.toLowerCase()) {
-            case "clear" -> "☀";
-            case "clouds" -> "☁";
-            case "rain" -> "⛈";
-            case "drizzle" -> "☔";
-            case "thunderstorm" -> "⚡";
-            case "snow" -> "❄";
-            case "mist", "fog" -> "≈";
-            default -> "◐";
-        };
-    }
 }
