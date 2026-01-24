@@ -37,10 +37,10 @@ public class DateTimeUtil {
     // ==================== Constructors ====================
     
     /**
-     * Private constructor to prevent instantiation
+     * Private constructor to prevent instantiation.
      */
     private DateTimeUtil() {
-        // Utility class
+        // Utility class.
     }
 
     // ==================== Public Methods ====================

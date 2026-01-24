@@ -17,6 +17,19 @@ Planned image locations:
 - docs/images/hourly-and-daily-forecast.png
 - docs/images/alerts-panel.png
 
+### Grading Checklist (Demo Flow)
+
+Use this quick flow to verify the required features during evaluation:
+
+1. Launch the app (`gradle run` or `./gradlew run`).
+2. Search for a city (e.g., “New York”) and confirm current conditions load.
+3. Toggle °F/°C to verify unit changes.
+4. Toggle light/dark theme to verify styling updates.
+5. Add a city to Favorites and confirm it appears in the list.
+6. Select a favorite city to reload weather.
+7. Review hourly and daily forecast panels.
+8. Confirm alerts panel shows live or simulated alerts based on availability.
+
 ## 3. Implemented Features
 
 - Search weather by city name and display current conditions
@@ -84,6 +97,24 @@ API keys are read from the environment variable OPENWEATHER_API_KEY and must not
 
 ## 7. Getting Started
 
+### Quick Start (copy/paste)
+
+```bash
+# macOS/Linux
+export OPENWEATHER_API_KEY="YOUR_KEY_HERE"
+
+./gradlew build
+./gradlew run
+```
+
+```powershell
+# Windows (PowerShell)
+setx OPENWEATHER_API_KEY "YOUR_KEY_HERE"
+
+gradlew.bat build
+gradlew.bat run
+```
+
 ### Prerequisites
 
 - JDK 17+
@@ -105,6 +136,15 @@ gradle build
 
 ### Run
 gradle run
+
+### Favorites Persistence
+
+Favorites are stored in a simple text file (`favorites.txt`) in the project working directory.  
+To reset favorites, delete the file and restart the app. This is intentionally lightweight for the POC.
+
+### Troubleshooting
+
+- If the API key is missing or invalid, the UI will show a load error and no data will appear.
 
 ## 8. Design Decisions
 

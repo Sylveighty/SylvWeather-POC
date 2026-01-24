@@ -3,10 +3,10 @@ package com.school.weatherapp.ui.panels;
 import com.school.weatherapp.data.models.Alert;
 import com.school.weatherapp.data.services.AlertService;
 import com.school.weatherapp.util.DateTimeUtil;
+import com.school.weatherapp.util.ThemeUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.VBox;
@@ -30,13 +30,13 @@ public class AlertPanel extends VBox {
     private final AlertService alertService;
 
     private Label titleLabel;
-    private Label contextLabel;     // Shows city + source
+    private Label contextLabel;     // Shows city + source.
     private VBox alertsContainer;
     private VBox containerBox;
 
     private ProgressIndicator loadingIndicator;
 
-    // Track the most recent request city
+    // Track the most recent request city.
     private String currentCity = "";
 
     public AlertPanel() {
@@ -56,27 +56,11 @@ public class AlertPanel extends VBox {
     // -------------------- Theme Methods --------------------
 
     public void applyLightTheme() {
-        ensureStylesheetOrder(THEME_LIGHT, THEME_DARK);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_LIGHT, THEME_DARK);
     }
 
     public void applyDarkTheme() {
-        ensureStylesheetOrder(THEME_DARK, THEME_LIGHT);
-    }
-
-    private void ensureStylesheetOrder(String primary, String secondary) {
-        Scene scene = getScene();
-        if (scene == null) return;
-
-        String primaryUrl = getClass().getResource(primary) != null ? getClass().getResource(primary).toExternalForm() : null;
-        String secondaryUrl = getClass().getResource(secondary) != null ? getClass().getResource(secondary).toExternalForm() : null;
-
-        if (primaryUrl == null || secondaryUrl == null) return;
-
-        var stylesheets = scene.getStylesheets();
-        stylesheets.remove(primaryUrl);
-        stylesheets.remove(secondaryUrl);
-        stylesheets.add(secondaryUrl);
-        stylesheets.add(primaryUrl);
+        ThemeUtil.ensureStylesheetOrder(getScene(), getClass(), THEME_DARK, THEME_LIGHT);
     }
 
     // -------------------- UI Build --------------------
@@ -138,7 +122,7 @@ public class AlertPanel extends VBox {
     }
 
     private boolean looksSimulated(List<Alert> alerts) {
-        // Your simulated alert title in the current service is "Moderate Wind Advisory"
+        // The simulated alert title in the current service is "Moderate Wind Advisory".
         // If you change the simulated data later, update this heuristic accordingly.
         if (alerts.size() != 1) return false;
         Alert a = alerts.get(0);
@@ -185,7 +169,7 @@ public class AlertPanel extends VBox {
         card.setPadding(new Insets(12));
         card.getStyleClass().add("forecast-card");
 
-        // Severity styling via CSS classes
+        // Severity styling via CSS classes.
         String severity = alert.getSeverity() != null ? alert.getSeverity().toLowerCase() : "low";
         switch (severity) {
             case "high" -> card.getStyleClass().add("alert-high");
