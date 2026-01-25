@@ -49,7 +49,9 @@ public class FavoritesPanel extends VBox {
         setMinWidth(350);
         setPrefWidth(450);
         setMaxWidth(550);
-        setPrefHeight(300);
+        setMinHeight(0);
+        setPrefHeight(USE_COMPUTED_SIZE);
+        setMaxHeight(Double.MAX_VALUE);
 
         // Panel styling via CSS.
         getStyleClass().add("panel-background");
@@ -120,8 +122,8 @@ public class FavoritesPanel extends VBox {
 
         scrollPane = new ScrollPane(favoritesList);
         scrollPane.setFitToWidth(true);
-        scrollPane.setPrefHeight(200);
         scrollPane.getStyleClass().add("scroll-pane");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         getChildren().add(scrollPane);
     }
