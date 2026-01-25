@@ -284,7 +284,7 @@ public class Weather {
     
     @Override
     public String toString() {
-        return String.format("%s, %s: %.1f°F - %s", 
+        return String.format("%s, %s: %.1f\u00B0F - %s", 
             cityName, country, temperature, description);
     }
 }

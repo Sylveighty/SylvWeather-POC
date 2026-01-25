@@ -152,6 +152,7 @@ To reset favorites, delete the file and restart the app. This is intentionally l
 - OpenWeather selected for accessible REST endpoints
 - Modular panel-based UI structure
 - Readability prioritized over production complexity
+- Emoji condition icons use system emoji fonts with fallbacks, and condition text is always shown so the UI stays readable even when emojis are unsupported.
 
 ## 9. Limitations
 

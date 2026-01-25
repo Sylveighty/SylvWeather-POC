@@ -24,8 +24,8 @@ public class TemperatureUtil {
      * Temperature units enumeration.
      */
     public enum Unit {
-        CELSIUS("°C"),
-        FAHRENHEIT("°F"),
+        CELSIUS("\u00B0C"),
+        FAHRENHEIT("\u00B0F"),
         KELVIN("K");
 
         private final String symbol;
@@ -144,7 +144,7 @@ public class TemperatureUtil {
      *
      * @param temperature Temperature value
      * @param unit Temperature unit
-     * @return Formatted string like "25°C" or "77°F"
+     * @return Formatted string like "25\u00B0C" or "77\u00B0F"
      */
     public static String formatTemperature(double temperature, Unit unit) {
         return formatTemperature(temperature, unit, 0);
@@ -156,7 +156,7 @@ public class TemperatureUtil {
      * @param temperature Temperature value
      * @param unit Temperature unit
      * @param decimalPlaces Number of decimal places (0-2)
-     * @return Formatted string like "25°C" or "77.5°F"
+     * @return Formatted string like "25\u00B0C" or "77.5\u00B0F"
      */
     public static String formatTemperature(double temperature, Unit unit, int decimalPlaces) {
         String formatString = switch (decimalPlaces) {

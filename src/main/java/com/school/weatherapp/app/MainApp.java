@@ -162,7 +162,7 @@ public class MainApp extends Application {
     }
 
     private Button createUnitToggleButton() {
-        Button unitToggle = new Button(isImperial ? "°F" : "°C");
+        Button unitToggle = new Button(isImperial ? "\u00B0F" : "\u00B0C");
         unitToggle.getStyleClass().add("pill-button");
         unitToggle.setAccessibleText("Toggle temperature unit");
         // Keep this blue in both themes for clarity (optional). If you prefer, move to CSS.
@@ -170,7 +170,7 @@ public class MainApp extends Application {
 
         unitToggle.setOnAction(e -> {
             isImperial = !isImperial;
-            unitToggle.setText(isImperial ? "°F" : "°C");
+            unitToggle.setText(isImperial ? "\u00B0F" : "\u00B0C");
             preferencesService.setTemperatureUnit(isImperial ? "imperial" : "metric");
 
             showUnitChangeMessage(isImperial ? "Fahrenheit" : "Celsius");

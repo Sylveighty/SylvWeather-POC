@@ -169,7 +169,7 @@ public class HighlightsPanel extends VBox {
             feelsLikeValue = weather.getFeelsLike();
         }
 
-        String tempUnit = isImperial ? "°F" : "°C";
+        String tempUnit = isImperial ? "\u00B0F" : "\u00B0C";
         this.feelsLikeValue.setText(String.format("%.0f%s", feelsLikeValue, tempUnit));
 
         humidityValue.setText(weather.getHumidity() + "%");

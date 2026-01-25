@@ -4,7 +4,7 @@ import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
 import com.school.weatherapp.util.TemperatureUtil;
 import com.school.weatherapp.util.ThemeUtil;
-import com.school.weatherapp.util.WeatherEmojiUtil;
+import com.school.weatherapp.util.WeatherEmojiResolver;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -164,7 +164,7 @@ public class DailyForecastPanel extends VBox {
         dayLabel.setMinWidth(70);
 
         // Icon.
-        Text icon = new Text(WeatherEmojiUtil.emojiForCondition(daily.getCondition()));
+        Text icon = new Text(WeatherEmojiResolver.resolveEmoji(daily.getIconCode(), daily.getCondition()));
         icon.getStyleClass().add("weather-icon");
         icon.setStyle("-fx-font-size: 26px;");
 
@@ -193,7 +193,7 @@ public class DailyForecastPanel extends VBox {
     }
 
     private String formatTempRange(Forecast daily, boolean isImperial) {
-        String unit = isImperial ? "°F" : "°C";
+        String unit = isImperial ? "\u00B0F" : "\u00B0C";
 
         boolean needConversion = daily.getTemperatureUnit() != null &&
             (("imperial".equalsIgnoreCase(daily.getTemperatureUnit()) && !isImperial) ||
