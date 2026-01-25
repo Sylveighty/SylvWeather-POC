@@ -51,6 +51,9 @@ public class Weather {
     private long sunsetTimestamp;    // Unix timestamp.
     private double precipitation;    // mm.
     private long timestamp;          // Unix timestamp.
+
+    // ==================== Cache State ====================
+    private boolean cached;
     
     // ==================== Constructors ====================
     
@@ -244,9 +247,17 @@ public class Weather {
     public long getTimestamp() {
         return timestamp;
     }
-    
+
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean isCached() {
+        return cached;
+    }
+
+    public void setCached(boolean cached) {
+        this.cached = cached;
     }
     
     // ==================== Utility Methods ====================

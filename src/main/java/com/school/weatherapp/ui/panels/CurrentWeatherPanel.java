@@ -4,6 +4,7 @@ import com.school.weatherapp.config.AppConfig;
 import com.school.weatherapp.data.models.Weather;
 import com.school.weatherapp.data.services.WeatherService;
 import com.school.weatherapp.features.FavoritesService;
+import com.school.weatherapp.features.UserPreferencesService;
 import com.school.weatherapp.util.DateTimeUtil;
 import com.school.weatherapp.util.TemperatureUtil;
 import com.school.weatherapp.util.ThemeUtil;
@@ -15,6 +16,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -44,6 +46,7 @@ public class CurrentWeatherPanel extends VBox {
     // Services.
     private final WeatherService weatherService;
     private final FavoritesService favoritesService;
+    private final UserPreferencesService preferencesService;
 
     // UI components.
     private TextField searchField;
@@ -65,9 +68,11 @@ public class CurrentWeatherPanel extends VBox {
     private Label sunriseLabel;
 
     private Label lastUpdatedLabel;
+    private Label cachedDataLabel;
     private ProgressIndicator loadingIndicator;
 
     private GridPane detailsGrid;
+    private FlowPane recentSearchesFlow;
 
     // Current weather data.
     private Weather currentWeather;
@@ -79,6 +84,7 @@ public class CurrentWeatherPanel extends VBox {
     public CurrentWeatherPanel(FavoritesService favoritesService) {
         this.weatherService = new WeatherService();
         this.favoritesService = favoritesService;
+        this.preferencesService = new UserPreferencesService();
 
         // Layout (no color/typography here; CSS handles that).
         setPadding(new Insets(20));
@@ -159,8 +165,25 @@ public class CurrentWeatherPanel extends VBox {
         errorLabel.getStyleClass().add("input-error");
         errorLabel.setVisible(false);
 
-        searchArea.getChildren().addAll(searchBar, errorLabel);
+        VBox recentSearchesBox = buildRecentSearches();
+
+        searchArea.getChildren().addAll(searchBar, errorLabel, recentSearchesBox);
         getChildren().add(searchArea);
+    }
+
+    private VBox buildRecentSearches() {
+        Label recentLabel = new Label("Recent searches");
+        recentLabel.getStyleClass().add("label-subtle");
+
+        recentSearchesFlow = new FlowPane();
+        recentSearchesFlow.setHgap(8);
+        recentSearchesFlow.setVgap(8);
+        recentSearchesFlow.getStyleClass().add("recent-searches");
+        refreshRecentSearches();
+
+        VBox recentBox = new VBox(4, recentLabel, recentSearchesFlow);
+        recentBox.getStyleClass().add("recent-searches-box");
+        return recentBox;
     }
 
     private void buildMainDisplay() {
@@ -247,12 +270,22 @@ public class CurrentWeatherPanel extends VBox {
     }
 
     private void buildFooter() {
+        cachedDataLabel = new Label("Offline • Showing cached data");
+        cachedDataLabel.getStyleClass().add("cache-banner");
+        cachedDataLabel.setVisible(false);
+        cachedDataLabel.setAlignment(Pos.CENTER);
+        cachedDataLabel.setMaxWidth(Double.MAX_VALUE);
+
         lastUpdatedLabel = new Label("Last updated: --");
         lastUpdatedLabel.getStyleClass().add("footer-label");
         lastUpdatedLabel.setAlignment(Pos.CENTER);
         lastUpdatedLabel.setMaxWidth(Double.MAX_VALUE);
 
-        getChildren().add(lastUpdatedLabel);
+        VBox footerBox = new VBox(6, cachedDataLabel, lastUpdatedLabel);
+        footerBox.setAlignment(Pos.CENTER);
+        footerBox.setFillWidth(true);
+
+        getChildren().add(footerBox);
     }
 
     private Label createDetailTitle(String text) {
@@ -327,6 +360,7 @@ public class CurrentWeatherPanel extends VBox {
             searchButton.setDisable(true);
             searchField.setDisable(true);
             favoriteButton.setDisable(true);
+            cachedDataLabel.setVisible(false);
             clearError();
         });
 
@@ -350,8 +384,8 @@ public class CurrentWeatherPanel extends VBox {
         // City.
         cityLabel.setText(weather.getFullLocation());
 
-        // Temperature (uses the unit in AppConfig at time of fetch).
-        String tempUnit = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "°F" : "°C";
+        // Temperature (uses the unit in the weather payload or stored preference).
+        String tempUnit = resolveTempUnit(weather);
         temperatureLabel.setText(String.format("%.0f%s", weather.getTemperature(), tempUnit));
 
         // Condition and description.
@@ -365,7 +399,7 @@ public class CurrentWeatherPanel extends VBox {
         feelsLikeLabel.setText(String.format("%.0f%s", weather.getFeelsLike(), tempUnit));
         humidityLabel.setText(weather.getHumidity() + "%");
 
-        String windUnit = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "mph" : "m/s";
+        String windUnit = resolveWindUnit(weather);
         windLabel.setText(String.format("%.1f %s %s",
             weather.getWindSpeed(),
             windUnit,
@@ -391,6 +425,8 @@ public class CurrentWeatherPanel extends VBox {
         // Timestamp.
         String timestamp = DateTimeUtil.formatDateTime(weather.getTimestamp());
         lastUpdatedLabel.setText("Last updated: " + timestamp);
+        updateCacheBanner(weather);
+        updateRecentSearches(weather.getCityName());
 
         // Favorites button.
         updateFavoriteButtonState(weather.getCityName());
@@ -404,11 +440,60 @@ public class CurrentWeatherPanel extends VBox {
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
+        cachedDataLabel.setVisible(false);
     }
 
     private void clearError() {
         errorLabel.setText("");
         errorLabel.setVisible(false);
+    }
+
+    private void updateRecentSearches(String cityName) {
+        preferencesService.addRecentSearch(cityName);
+        refreshRecentSearches();
+    }
+
+    private void refreshRecentSearches() {
+        if (recentSearchesFlow == null) {
+            return;
+        }
+        recentSearchesFlow.getChildren().clear();
+        var searches = preferencesService.getRecentSearches();
+        if (searches.isEmpty()) {
+            Label emptyLabel = new Label("No recent searches yet.");
+            emptyLabel.getStyleClass().add("label-subtle");
+            recentSearchesFlow.getChildren().add(emptyLabel);
+            return;
+        }
+        for (String city : searches) {
+            Button chip = new Button(city);
+            chip.getStyleClass().add("search-chip");
+            chip.setOnAction(event -> loadWeather(city));
+            recentSearchesFlow.getChildren().add(chip);
+        }
+    }
+
+    private void updateCacheBanner(Weather weather) {
+        if (cachedDataLabel == null) {
+            return;
+        }
+        cachedDataLabel.setVisible(weather != null && weather.isCached());
+    }
+
+    private String resolveTempUnit(Weather weather) {
+        String unit = weather.getTemperatureUnit();
+        if (unit == null || unit.isBlank()) {
+            unit = preferencesService.getTemperatureUnit();
+        }
+        return "imperial".equalsIgnoreCase(unit) ? "°F" : "°C";
+    }
+
+    private String resolveWindUnit(Weather weather) {
+        String unit = weather.getTemperatureUnit();
+        if (unit == null || unit.isBlank()) {
+            unit = preferencesService.getTemperatureUnit();
+        }
+        return "imperial".equalsIgnoreCase(unit) ? "mph" : "m/s";
     }
 
     // -------------------- Utility Methods --------------------
@@ -495,5 +580,6 @@ public class CurrentWeatherPanel extends VBox {
             windUnit,
             weather.getWindDirectionCompass()
         ));
+        updateCacheBanner(weather);
     }
 }

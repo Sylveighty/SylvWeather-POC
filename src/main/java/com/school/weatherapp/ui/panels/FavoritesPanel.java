@@ -35,6 +35,7 @@ public class FavoritesPanel extends VBox {
     private final FavoritesService favoritesService;
 
     private Consumer<String> onCitySelectCallback;
+    private Runnable onFavoritesChangeCallback;
 
     private VBox favoritesList;
     private Label headerLabel;
@@ -78,6 +79,13 @@ public class FavoritesPanel extends VBox {
      */
     public void setOnCitySelect(Consumer<String> callback) {
         this.onCitySelectCallback = callback;
+    }
+
+    /**
+     * Set callback to be notified when favorites change.
+     */
+    public void setOnFavoritesChange(Runnable callback) {
+        this.onFavoritesChangeCallback = callback;
     }
 
     /**
@@ -191,6 +199,9 @@ public class FavoritesPanel extends VBox {
             if (response == ButtonType.OK) {
                 favoritesService.removeFavorite(cityName);
                 refreshFavorites();
+                if (onFavoritesChangeCallback != null) {
+                    onFavoritesChangeCallback.run();
+                }
             }
         });
     }

@@ -39,6 +39,9 @@ public class Forecast {
     private int precipitation;        // Percentage chance (0-100).
     private double rainAmount;        // mm.
     private double snowAmount;        // mm.
+
+    // ==================== Cache State ====================
+    private boolean cached;
     
     // ==================== Constructors ====================
     
@@ -176,6 +179,14 @@ public class Forecast {
 
     public void setSnowAmount(double snowAmount) {
         this.snowAmount = snowAmount;
+    }
+
+    public boolean isCached() {
+        return cached;
+    }
+
+    public void setCached(boolean cached) {
+        this.cached = cached;
     }
     
     // ==================== Utility Methods ====================
