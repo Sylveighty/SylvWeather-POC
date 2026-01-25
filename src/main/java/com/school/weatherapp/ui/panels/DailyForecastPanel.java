@@ -45,8 +45,8 @@ public class DailyForecastPanel extends VBox {
     public DailyForecastPanel() {
         this.forecastService = new ForecastService();
 
-        setPadding(new Insets(20));
-        setSpacing(15);
+        setPadding(new Insets(12));
+        setSpacing(10);
 
         getStyleClass().add("panel-background");
 
@@ -76,20 +76,20 @@ public class DailyForecastPanel extends VBox {
         cacheNoticeLabel.getStyleClass().add("cache-banner");
         cacheNoticeLabel.setVisible(false);
 
-        VBox header = new VBox(4, titleLabel, cacheNoticeLabel);
+        VBox header = new VBox(3, titleLabel, cacheNoticeLabel);
         getChildren().add(header);
     }
 
     private void buildDailyContainer() {
-        containerBox = new VBox(10);
-        containerBox.setPadding(new Insets(20));
+        containerBox = new VBox(8);
+        containerBox.setPadding(new Insets(12));
         containerBox.getStyleClass().add("panel-content");
 
-        dailyCardsContainer = new VBox(10);
+        dailyCardsContainer = new VBox(8);
         dailyCardsContainer.setAlignment(Pos.TOP_CENTER);
 
         loadingIndicator = new ProgressIndicator();
-        loadingIndicator.setMaxSize(40, 40);
+        loadingIndicator.setMaxSize(28, 28);
 
         containerBox.getChildren().add(dailyCardsContainer);
         getChildren().add(containerBox);
@@ -121,9 +121,9 @@ public class DailyForecastPanel extends VBox {
             dailyCardsContainer.getChildren().clear();
             updateCacheNotice(null);
 
-            VBox loadingBox = new VBox(10);
+            VBox loadingBox = new VBox(6);
             loadingBox.setAlignment(Pos.CENTER);
-            loadingBox.setPadding(new Insets(20));
+            loadingBox.setPadding(new Insets(10));
 
             Label loadingLabel = new Label("Loading...");
             loadingLabel.getStyleClass().add("label-subtle");
@@ -153,9 +153,9 @@ public class DailyForecastPanel extends VBox {
     }
 
     private HBox createDailyCard(Forecast daily, boolean isImperial) {
-        HBox row = new HBox(12);
+        HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(12));
+        row.setPadding(new Insets(8));
         row.getStyleClass().add("forecast-card");
 
         // Day label.
@@ -166,7 +166,7 @@ public class DailyForecastPanel extends VBox {
         // Icon.
         Text icon = new Text(WeatherEmojiResolver.resolveEmoji(daily.getIconCode(), daily.getCondition()));
         icon.getStyleClass().add("weather-icon");
-        icon.setStyle("-fx-font-size: 26px;");
+        icon.setStyle("-fx-font-size: 22px;");
 
         // Condition text (optional).
         Label condLabel = new Label(daily.getCondition() != null ? daily.getCondition() : "");
@@ -178,14 +178,14 @@ public class DailyForecastPanel extends VBox {
         String rangeText = formatTempRange(daily, isImperial);
         Label rangeLabel = new Label(rangeText);
         rangeLabel.getStyleClass().add("label-primary");
-        rangeLabel.setMinWidth(130);
+        rangeLabel.setMinWidth(110);
         rangeLabel.setAlignment(Pos.CENTER_RIGHT);
 
         Label precipLabel = new Label(formatPrecipSummary(daily, isImperial));
         precipLabel.getStyleClass().add("label-subtle");
         precipLabel.setAlignment(Pos.CENTER_RIGHT);
 
-        VBox detailsBox = new VBox(4, rangeLabel, precipLabel);
+        VBox detailsBox = new VBox(2, rangeLabel, precipLabel);
         detailsBox.setAlignment(Pos.CENTER_RIGHT);
 
         row.getChildren().addAll(dayLabel, icon, condLabel, detailsBox);

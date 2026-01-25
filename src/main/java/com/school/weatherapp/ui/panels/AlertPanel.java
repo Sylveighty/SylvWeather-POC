@@ -49,8 +49,8 @@ public class AlertPanel extends VBox {
         this.alertService = new AlertService();
         this.alertHistoryService = new AlertHistoryService();
 
-        setPadding(new Insets(20));
-        setSpacing(8);
+        setPadding(new Insets(12));
+        setSpacing(6);
 
         getStyleClass().add("panel-background");
 
@@ -83,24 +83,24 @@ public class AlertPanel extends VBox {
     }
 
     private void buildAlertsContainer() {
-        containerBox = new VBox(10);
-        containerBox.setPadding(new Insets(20));
+        containerBox = new VBox(8);
+        containerBox.setPadding(new Insets(12));
         containerBox.getStyleClass().add("panel-content");
 
         currentAlertsLabel = new Label("Current Alerts");
         currentAlertsLabel.getStyleClass().add("label-secondary");
 
-        alertsContainer = new VBox(10);
+        alertsContainer = new VBox(6);
         alertsContainer.setAlignment(Pos.TOP_LEFT);
 
         historyLabel = new Label("Alert History");
         historyLabel.getStyleClass().add("label-secondary");
 
-        historyContainer = new VBox(10);
+        historyContainer = new VBox(6);
         historyContainer.setAlignment(Pos.TOP_LEFT);
 
         loadingIndicator = new ProgressIndicator();
-        loadingIndicator.setMaxSize(40, 40);
+        loadingIndicator.setMaxSize(28, 28);
 
         containerBox.getChildren().addAll(currentAlertsLabel, alertsContainer, historyLabel, historyContainer);
         getChildren().add(containerBox);
@@ -163,9 +163,9 @@ public class AlertPanel extends VBox {
             alertsContainer.getChildren().clear();
             historyContainer.getChildren().clear();
 
-            VBox loadingBox = new VBox(10);
+            VBox loadingBox = new VBox(6);
             loadingBox.setAlignment(Pos.CENTER);
-            loadingBox.setPadding(new Insets(10));
+            loadingBox.setPadding(new Insets(6));
 
             Label loadingLabel = new Label("Loading...");
             loadingLabel.getStyleClass().add("label-subtle");
@@ -227,8 +227,8 @@ public class AlertPanel extends VBox {
     }
 
     private VBox createAlertCard(Alert alert) {
-        VBox card = new VBox(6);
-        card.setPadding(new Insets(12));
+        VBox card = new VBox(4);
+        card.setPadding(new Insets(8));
         card.getStyleClass().add("forecast-card");
 
         // Severity styling via CSS classes.
@@ -260,8 +260,8 @@ public class AlertPanel extends VBox {
     }
 
     private VBox createHistoryCard(AlertHistoryEntry entry) {
-        VBox card = new VBox(6);
-        card.setPadding(new Insets(12));
+        VBox card = new VBox(4);
+        card.setPadding(new Insets(8));
         card.getStyleClass().add("forecast-card");
 
         Label fetchedAt = new Label("Fetched: " + DateTimeUtil.formatDateTime(entry.getFetchedAt()));

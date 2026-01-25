@@ -45,8 +45,8 @@ public class HourlyForecastPanel extends VBox {
     public HourlyForecastPanel() {
         this.forecastService = new ForecastService();
 
-        setPadding(new Insets(20));
-        setSpacing(15);
+        setPadding(new Insets(12));
+        setSpacing(10);
 
         // Panel styling.
         getStyleClass().add("panel-background");
@@ -77,21 +77,21 @@ public class HourlyForecastPanel extends VBox {
         cacheNoticeLabel.getStyleClass().add("cache-banner");
         cacheNoticeLabel.setVisible(false);
 
-        VBox header = new VBox(4, titleLabel, cacheNoticeLabel);
+        VBox header = new VBox(3, titleLabel, cacheNoticeLabel);
         getChildren().add(header);
     }
 
     private void buildForecastContainer() {
         // Inner container (background comes from CSS).
         containerBox = new VBox();
-        containerBox.setPadding(new Insets(20));
+        containerBox.setPadding(new Insets(12));
         containerBox.getStyleClass().add("panel-content");
 
-        forecastCardsContainer = new HBox(12);
+        forecastCardsContainer = new HBox(8);
         forecastCardsContainer.setAlignment(Pos.CENTER);
 
         loadingIndicator = new ProgressIndicator();
-        loadingIndicator.setMaxSize(40, 40);
+        loadingIndicator.setMaxSize(28, 28);
 
         containerBox.getChildren().add(forecastCardsContainer);
         getChildren().add(containerBox);
@@ -123,9 +123,9 @@ public class HourlyForecastPanel extends VBox {
             forecastCardsContainer.getChildren().clear();
             updateCacheNotice(null);
 
-            VBox loadingBox = new VBox(10);
+            VBox loadingBox = new VBox(6);
             loadingBox.setAlignment(Pos.CENTER);
-            loadingBox.setPrefHeight(120);
+            loadingBox.setPrefHeight(90);
 
             Label loadingLabel = new Label("Loading...");
             loadingLabel.getStyleClass().add("label-subtle");
@@ -155,10 +155,10 @@ public class HourlyForecastPanel extends VBox {
     }
 
     private VBox createForecastCard(Forecast forecast, boolean isImperial) {
-        VBox card = new VBox(6);
+        VBox card = new VBox(4);
         card.setAlignment(Pos.CENTER);
-        card.setPadding(new Insets(12));
-        card.setPrefWidth(90);
+        card.setPadding(new Insets(8));
+        card.setPrefWidth(78);
 
         // Card styling comes from CSS (including hover effect).
         card.getStyleClass().add("forecast-card");
@@ -168,7 +168,7 @@ public class HourlyForecastPanel extends VBox {
 
         Text icon = new Text(WeatherEmojiResolver.resolveEmoji(forecast.getIconCode(), forecast.getCondition()));
         icon.getStyleClass().add("weather-icon");
-        icon.setStyle("-fx-font-size: 32px;"); // Keep size local; the emoji font family is in CSS.
+        icon.setStyle("-fx-font-size: 26px;"); // Keep size local; the emoji font family is in CSS.
 
         // Determine if conversion is needed.
         boolean needConversion = forecast.getTemperatureUnit() != null &&

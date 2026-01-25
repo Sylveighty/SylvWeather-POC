@@ -43,8 +43,8 @@ public class HighlightsPanel extends VBox {
         UserPreferencesService preferencesService = new UserPreferencesService();
         this.isImperial = "imperial".equalsIgnoreCase(preferencesService.getTemperatureUnit());
 
-        setPadding(new Insets(20));
-        setSpacing(15);
+        setPadding(new Insets(12));
+        setSpacing(10);
         getStyleClass().add("panel-background");
 
         buildTitle();
@@ -69,18 +69,18 @@ public class HighlightsPanel extends VBox {
         cacheNoticeLabel.getStyleClass().add("cache-banner");
         cacheNoticeLabel.setVisible(false);
 
-        VBox header = new VBox(4, title, cacheNoticeLabel);
+        VBox header = new VBox(3, title, cacheNoticeLabel);
         getChildren().add(header);
     }
 
     private void buildHighlightsGrid() {
-        VBox container = new VBox(12);
+        VBox container = new VBox(8);
         container.setAlignment(Pos.CENTER);
         container.getStyleClass().add("panel-content");
 
         GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(16);
+        grid.setHgap(10);
+        grid.setVgap(10);
         grid.setAlignment(Pos.CENTER);
 
         for (int i = 0; i < 3; i++) {
@@ -106,7 +106,7 @@ public class HighlightsPanel extends VBox {
         grid.add(createHighlightCard("Visibility", visibilityValue), 2, 1);
 
         loadingIndicator = new ProgressIndicator();
-        loadingIndicator.setMaxSize(40, 40);
+        loadingIndicator.setMaxSize(28, 28);
         loadingIndicator.setVisible(false);
 
         container.getChildren().addAll(grid, loadingIndicator);
@@ -114,8 +114,8 @@ public class HighlightsPanel extends VBox {
     }
 
     private VBox createHighlightCard(String title, Label valueLabel) {
-        VBox card = new VBox(6);
-        card.setPadding(new Insets(14));
+        VBox card = new VBox(4);
+        card.setPadding(new Insets(10));
         card.setAlignment(Pos.TOP_LEFT);
         card.getStyleClass().add("highlight-card");
 
