@@ -6,6 +6,7 @@ import com.school.weatherapp.ui.panels.AlertPanel;
 import com.school.weatherapp.ui.panels.CurrentWeatherPanel;
 import com.school.weatherapp.ui.panels.DailyForecastPanel;
 import com.school.weatherapp.ui.panels.FavoritesPanel;
+import com.school.weatherapp.ui.panels.HighlightsPanel;
 import com.school.weatherapp.ui.panels.HourlyForecastPanel;
 import javafx.application.Application;
 import javafx.animation.PauseTransition;
@@ -51,6 +52,7 @@ public class MainApp extends Application {
     // Panels.
     private CurrentWeatherPanel currentWeatherPanel;
     private FavoritesPanel favoritesPanel;
+    private HighlightsPanel highlightsPanel;
     private HourlyForecastPanel hourlyForecastPanel;
     private DailyForecastPanel dailyForecastPanel;
     private AlertPanel alertPanel;
@@ -185,6 +187,7 @@ public class MainApp extends Application {
         FavoritesService favoritesService = new FavoritesService();
         currentWeatherPanel = new CurrentWeatherPanel(favoritesService);
         favoritesPanel = new FavoritesPanel(favoritesService);
+        highlightsPanel = new HighlightsPanel();
         hourlyForecastPanel = new HourlyForecastPanel();
         dailyForecastPanel = new DailyForecastPanel();
         alertPanel = new AlertPanel();
@@ -206,11 +209,13 @@ public class MainApp extends Application {
 
         // Forecast/alert panels should stretch.
         alertPanel.setMaxWidth(Double.MAX_VALUE);
+        highlightsPanel.setMaxWidth(Double.MAX_VALUE);
         hourlyForecastPanel.setMaxWidth(Double.MAX_VALUE);
         dailyForecastPanel.setMaxWidth(Double.MAX_VALUE);
 
         mainLayout.getChildren().addAll(
             topSection,
+            highlightsPanel,
             alertPanel,
             hourlyForecastPanel,
             dailyForecastPanel
@@ -263,12 +268,14 @@ public class MainApp extends Application {
         if (dark) {
             currentWeatherPanel.applyDarkTheme();
             favoritesPanel.applyDarkTheme();
+            highlightsPanel.applyDarkTheme();
             hourlyForecastPanel.applyDarkTheme();
             dailyForecastPanel.applyDarkTheme();
             alertPanel.applyDarkTheme();
         } else {
             currentWeatherPanel.applyLightTheme();
             favoritesPanel.applyLightTheme();
+            highlightsPanel.applyLightTheme();
             hourlyForecastPanel.applyLightTheme();
             dailyForecastPanel.applyLightTheme();
             alertPanel.applyLightTheme();
@@ -276,6 +283,7 @@ public class MainApp extends Application {
     }
 
     private void loadForecasts(String cityName) {
+        highlightsPanel.loadHighlights(cityName);
         hourlyForecastPanel.loadHourlyForecast(cityName);
         dailyForecastPanel.loadDailyForecast(cityName);
         alertPanel.loadAlerts(cityName);
@@ -289,6 +297,7 @@ public class MainApp extends Application {
 
     private void refreshAllTemperatures() {
         currentWeatherPanel.refreshTemperatures(isImperial);
+        highlightsPanel.refreshTemperatures(isImperial);
         hourlyForecastPanel.refreshTemperatures(isImperial);
         dailyForecastPanel.refreshTemperatures(isImperial);
     }
