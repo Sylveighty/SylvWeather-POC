@@ -169,7 +169,11 @@ public class AlertService {
         alert.setId(event);
         alert.setTitle(event);
         alert.setDescription(description);
-        alert.setTimestamp(alertJson.has("start") ? alertJson.get("start").getAsLong() : (System.currentTimeMillis() / 1000));
+        long start = alertJson.has("start") ? alertJson.get("start").getAsLong() : (System.currentTimeMillis() / 1000);
+        long end = alertJson.has("end") ? alertJson.get("end").getAsLong() : 0L;
+        alert.setTimestamp(start);
+        alert.setEffectiveStart(start);
+        alert.setEffectiveEnd(end);
 
         // Simple severity heuristic (POC).
         String lower = event.toLowerCase();
@@ -195,7 +199,10 @@ public class AlertService {
         alert1.setTitle("Moderate Wind Advisory");
         alert1.setDescription("Winds 25-35 mph expected through tonight. Secure outdoor objects.");
         alert1.setSeverity("medium");
-        alert1.setTimestamp(System.currentTimeMillis() / 1000);
+        long now = System.currentTimeMillis() / 1000;
+        alert1.setTimestamp(now);
+        alert1.setEffectiveStart(now);
+        alert1.setEffectiveEnd(now + (6 * 60 * 60));
         alerts.add(alert1);
 
         return alerts;

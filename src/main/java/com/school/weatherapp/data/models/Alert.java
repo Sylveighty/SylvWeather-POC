@@ -15,6 +15,8 @@ public class Alert {
     private String description;
     private String severity;       // "low", "medium", "high".
     private long timestamp;
+    private long effectiveStart;
+    private long effectiveEnd;
     
     // ==================== Constructors ====================
     
@@ -72,5 +74,21 @@ public class Alert {
     
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public long getEffectiveStart() {
+        return effectiveStart;
+    }
+
+    public void setEffectiveStart(long effectiveStart) {
+        this.effectiveStart = effectiveStart;
+    }
+
+    public long getEffectiveEnd() {
+        return effectiveEnd;
+    }
+
+    public void setEffectiveEnd(long effectiveEnd) {
+        this.effectiveEnd = effectiveEnd;
     }
 }

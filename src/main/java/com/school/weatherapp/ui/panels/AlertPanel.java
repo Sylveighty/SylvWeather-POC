@@ -1,6 +1,8 @@
 package com.school.weatherapp.ui.panels;
 
 import com.school.weatherapp.data.models.Alert;
+import com.school.weatherapp.data.models.AlertHistoryEntry;
+import com.school.weatherapp.data.services.AlertHistoryService;
 import com.school.weatherapp.data.services.AlertService;
 import com.school.weatherapp.util.DateTimeUtil;
 import com.school.weatherapp.util.ThemeUtil;
@@ -28,10 +30,14 @@ public class AlertPanel extends VBox {
     private static final String THEME_DARK = "/theme-dark.css";
 
     private final AlertService alertService;
+    private final AlertHistoryService alertHistoryService;
 
     private Label titleLabel;
     private Label contextLabel;     // Shows city + source.
+    private Label currentAlertsLabel;
+    private Label historyLabel;
     private VBox alertsContainer;
+    private VBox historyContainer;
     private VBox containerBox;
 
     private ProgressIndicator loadingIndicator;
@@ -41,6 +47,7 @@ public class AlertPanel extends VBox {
 
     public AlertPanel() {
         this.alertService = new AlertService();
+        this.alertHistoryService = new AlertHistoryService();
 
         setPadding(new Insets(20));
         setSpacing(8);
@@ -80,13 +87,22 @@ public class AlertPanel extends VBox {
         containerBox.setPadding(new Insets(20));
         containerBox.getStyleClass().add("panel-content");
 
+        currentAlertsLabel = new Label("Current Alerts");
+        currentAlertsLabel.getStyleClass().add("label-secondary");
+
         alertsContainer = new VBox(10);
         alertsContainer.setAlignment(Pos.TOP_LEFT);
+
+        historyLabel = new Label("Alert History");
+        historyLabel.getStyleClass().add("label-secondary");
+
+        historyContainer = new VBox(10);
+        historyContainer.setAlignment(Pos.TOP_LEFT);
 
         loadingIndicator = new ProgressIndicator();
         loadingIndicator.setMaxSize(40, 40);
 
-        containerBox.getChildren().add(alertsContainer);
+        containerBox.getChildren().addAll(currentAlertsLabel, alertsContainer, historyLabel, historyContainer);
         getChildren().add(containerBox);
 
         showLoading();
@@ -105,6 +121,8 @@ public class AlertPanel extends VBox {
                 if (alerts == null || alerts.isEmpty()) {
                     contextLabel.setText("Alerts for: " + safeCity() + " (none available)");
                     showNoAlerts();
+                    alertHistoryService.record(currentCity, alerts);
+                    updateHistory(alertHistoryService.getHistory(currentCity));
                     return;
                 }
 
@@ -114,6 +132,8 @@ public class AlertPanel extends VBox {
 
                 contextLabel.setText("Alerts for: " + safeCity() + (simulated ? " (simulated fallback)" : " (live)"));
                 showAlerts(alerts);
+                alertHistoryService.record(currentCity, alerts);
+                updateHistory(alertHistoryService.getHistory(currentCity));
             }));
     }
 
@@ -135,6 +155,7 @@ public class AlertPanel extends VBox {
     private void showLoading() {
         Platform.runLater(() -> {
             alertsContainer.getChildren().clear();
+            historyContainer.getChildren().clear();
 
             VBox loadingBox = new VBox(10);
             loadingBox.setAlignment(Pos.CENTER);
@@ -145,6 +166,10 @@ public class AlertPanel extends VBox {
 
             loadingBox.getChildren().addAll(loadingIndicator, loadingLabel);
             alertsContainer.getChildren().add(loadingBox);
+
+            Label historyLoading = new Label("Loading alert history...");
+            historyLoading.getStyleClass().add("label-subtle");
+            historyContainer.getChildren().add(historyLoading);
         });
     }
 
@@ -164,6 +189,21 @@ public class AlertPanel extends VBox {
         }
     }
 
+    private void updateHistory(List<AlertHistoryEntry> entries) {
+        historyContainer.getChildren().clear();
+
+        if (entries == null || entries.size() <= 1) {
+            Label none = new Label("No previous alerts.");
+            none.getStyleClass().add("label-subtle");
+            historyContainer.getChildren().add(none);
+            return;
+        }
+
+        for (int i = 1; i < entries.size(); i++) {
+            historyContainer.getChildren().add(createHistoryCard(entries.get(i)));
+        }
+    }
+
     private VBox createAlertCard(Alert alert) {
         VBox card = new VBox(6);
         card.setPadding(new Insets(12));
@@ -180,6 +220,12 @@ public class AlertPanel extends VBox {
         Label title = new Label(alert.getTitle() != null ? alert.getTitle() : "Alert");
         title.getStyleClass().add("label-primary");
 
+        Label severity = new Label("Severity: " + formatSeverity(alert.getSeverity()));
+        severity.getStyleClass().add("label-secondary");
+
+        Label timeWindow = new Label(formatEffectiveWindow(alert));
+        timeWindow.getStyleClass().add("label-subtle");
+
         Label time = new Label("Issued: " + DateTimeUtil.formatDateTime(alert.getTimestamp()));
         time.getStyleClass().add("label-subtle");
 
@@ -187,7 +233,61 @@ public class AlertPanel extends VBox {
         desc.getStyleClass().add("label-secondary");
         desc.setWrapText(true);
 
-        card.getChildren().addAll(title, time, desc);
+        card.getChildren().addAll(title, severity, timeWindow, time, desc);
         return card;
+    }
+
+    private VBox createHistoryCard(AlertHistoryEntry entry) {
+        VBox card = new VBox(6);
+        card.setPadding(new Insets(12));
+        card.getStyleClass().add("forecast-card");
+
+        Label fetchedAt = new Label("Fetched: " + DateTimeUtil.formatDateTime(entry.getFetchedAt()));
+        fetchedAt.getStyleClass().add("label-subtle");
+        card.getChildren().add(fetchedAt);
+
+        List<Alert> alerts = entry.getAlerts();
+        if (alerts.isEmpty()) {
+            Label none = new Label("No alerts at this time.");
+            none.getStyleClass().add("label-secondary");
+            card.getChildren().add(none);
+            return card;
+        }
+
+        for (Alert alert : alerts) {
+            String summary = "• " + buildAlertSummary(alert);
+            Label summaryLabel = new Label(summary);
+            summaryLabel.getStyleClass().add("label-secondary");
+            summaryLabel.setWrapText(true);
+            card.getChildren().add(summaryLabel);
+        }
+
+        return card;
+    }
+
+    private String buildAlertSummary(Alert alert) {
+        String title = alert.getTitle() != null ? alert.getTitle() : "Alert";
+        return String.format("%s (Severity: %s, %s)", title, formatSeverity(alert.getSeverity()), formatEffectiveWindow(alert));
+    }
+
+    private String formatSeverity(String severity) {
+        if (severity == null || severity.isBlank()) {
+            return "Unknown";
+        }
+        String trimmed = severity.trim().toLowerCase();
+        return trimmed.substring(0, 1).toUpperCase() + trimmed.substring(1);
+    }
+
+    private String formatEffectiveWindow(Alert alert) {
+        long start = alert.getEffectiveStart();
+        long end = alert.getEffectiveEnd();
+
+        if (start <= 0 && end <= 0) {
+            return "Effective window unavailable";
+        }
+
+        String startText = start > 0 ? DateTimeUtil.formatDateTime(start) : "Unknown start";
+        String endText = end > 0 ? DateTimeUtil.formatDateTime(end) : "Until further notice";
+        return "Effective: " + startText + " - " + endText;
     }
 }
