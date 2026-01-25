@@ -28,6 +28,14 @@ public final class AppConfig {
     /** Default city displayed on app launch. */
     public static final String DEFAULT_CITY = "New York";
 
+    /**
+     * Toggle for using simulated alerts when live alerts are unavailable.
+     * Defaults to false; can be enabled via ENABLE_SIMULATED_ALERTS=true.
+     */
+    public static final boolean ENABLE_SIMULATED_ALERTS =
+        System.getenv("ENABLE_SIMULATED_ALERTS") != null
+            && Boolean.parseBoolean(System.getenv("ENABLE_SIMULATED_ALERTS").trim());
+
     // ==================== UI Configuration ====================
 
     /** Temperature unit preference ("metric" or "imperial"). */
