@@ -61,6 +61,8 @@ public class CurrentWeatherPanel extends VBox {
     private Label humidityLabel;
     private Label windLabel;
     private Label pressureLabel;
+    private Label uvLabel;
+    private Label sunriseLabel;
 
     private Label lastUpdatedLabel;
     private ProgressIndicator loadingIndicator;
@@ -229,6 +231,18 @@ public class CurrentWeatherPanel extends VBox {
         detailsGrid.add(pressureTitle, 1, 2);
         detailsGrid.add(pressureLabel, 1, 3);
 
+        // UV Index.
+        Label uvTitle = createDetailTitle("UV Index");
+        uvLabel = createDetailValue("--");
+        detailsGrid.add(uvTitle, 0, 4);
+        detailsGrid.add(uvLabel, 0, 5);
+
+        // Sunrise / Sunset.
+        Label sunriseTitle = createDetailTitle("Sunrise / Sunset");
+        sunriseLabel = createDetailValue("--");
+        detailsGrid.add(sunriseTitle, 1, 4);
+        detailsGrid.add(sunriseLabel, 1, 5);
+
         getChildren().add(detailsGrid);
     }
 
@@ -359,6 +373,20 @@ public class CurrentWeatherPanel extends VBox {
         ));
 
         pressureLabel.setText(weather.getPressure() + " hPa");
+
+        if (weather.getUvIndex() >= 0) {
+            uvLabel.setText(String.valueOf(weather.getUvIndex()));
+        } else {
+            uvLabel.setText("--");
+        }
+
+        if (weather.getSunriseTimestamp() > 0 && weather.getSunsetTimestamp() > 0) {
+            String sunrise = DateTimeUtil.formatTime(weather.getSunriseTimestamp());
+            String sunset = DateTimeUtil.formatTime(weather.getSunsetTimestamp());
+            sunriseLabel.setText(String.format("%s / %s", sunrise, sunset));
+        } else {
+            sunriseLabel.setText("--");
+        }
 
         // Timestamp.
         String timestamp = DateTimeUtil.formatDateTime(weather.getTimestamp());

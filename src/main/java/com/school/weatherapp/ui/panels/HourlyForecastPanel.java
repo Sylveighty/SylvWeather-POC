@@ -182,14 +182,34 @@ public class HourlyForecastPanel extends VBox {
 
         card.getChildren().addAll(timeLabel, icon, tempLabel);
 
-        if (forecast.getPrecipitation() > 0) {
-            Label precip = new Label(forecast.getPrecipitation() + "%");
-            // Use subtle label; the theme controls text color.
-            precip.getStyleClass().add("label-subtle");
-            card.getChildren().add(precip);
-        }
+        Label precip = new Label(formatPrecipSummary(forecast, isImperial));
+        precip.getStyleClass().add("label-subtle");
+        card.getChildren().add(precip);
 
         return card;
+    }
+
+    private String formatPrecipSummary(Forecast forecast, boolean isImperial) {
+        int precipChance = forecast.getPrecipitation();
+        StringBuilder summary = new StringBuilder(precipChance + "%");
+
+        double rainAmount = forecast.getRainAmount();
+        double snowAmount = forecast.getSnowAmount();
+
+        double unitDivisor = isImperial ? 25.4 : 1.0;
+        String unitLabel = isImperial ? "in" : "mm";
+
+        if (rainAmount > 0) {
+            double rainDisplay = rainAmount / unitDivisor;
+            summary.append(String.format(" • %.1f%s rain", rainDisplay, unitLabel));
+        }
+
+        if (snowAmount > 0) {
+            double snowDisplay = snowAmount / unitDivisor;
+            summary.append(String.format(" • %.1f%s snow", snowDisplay, unitLabel));
+        }
+
+        return summary.toString();
     }
 
     /**

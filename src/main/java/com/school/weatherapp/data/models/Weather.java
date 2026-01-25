@@ -18,6 +18,8 @@ public class Weather {
     // ==================== Location Information ====================
     private String cityName;
     private String country;
+    private double latitude;
+    private double longitude;
     
     // ==================== Temperature Data ====================
     private double temperature;
@@ -57,6 +59,8 @@ public class Weather {
      */
     public Weather() {
         this.timestamp = System.currentTimeMillis() / 1000;
+        this.latitude = Double.NaN;
+        this.longitude = Double.NaN;
     }
     
     // ==================== Getters and Setters ====================
@@ -75,6 +79,22 @@ public class Weather {
     
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
     
     public double getTemperature() {

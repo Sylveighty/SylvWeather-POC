@@ -68,7 +68,7 @@ public class DailyForecastPanel extends VBox {
     // -------------------- UI Build --------------------
 
     private void buildTitle() {
-        titleLabel = new Label("Daily Forecast");
+        titleLabel = new Label("7–10 Day Forecast");
         titleLabel.getStyleClass().add("section-title");
         getChildren().add(titleLabel);
     }
@@ -171,7 +171,14 @@ public class DailyForecastPanel extends VBox {
         rangeLabel.setMinWidth(130);
         rangeLabel.setAlignment(Pos.CENTER_RIGHT);
 
-        row.getChildren().addAll(dayLabel, icon, condLabel, rangeLabel);
+        Label precipLabel = new Label(formatPrecipSummary(daily, isImperial));
+        precipLabel.getStyleClass().add("label-subtle");
+        precipLabel.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox detailsBox = new VBox(4, rangeLabel, precipLabel);
+        detailsBox.setAlignment(Pos.CENTER_RIGHT);
+
+        row.getChildren().addAll(dayLabel, icon, condLabel, detailsBox);
         return row;
     }
 
@@ -196,6 +203,29 @@ public class DailyForecastPanel extends VBox {
         }
 
         return String.format("%.0f%s / %.0f%s", min, unit, max, unit);
+    }
+
+    private String formatPrecipSummary(Forecast daily, boolean isImperial) {
+        int precipChance = daily.getPrecipitation();
+        StringBuilder summary = new StringBuilder(precipChance + "%");
+
+        double rainAmount = daily.getRainAmount();
+        double snowAmount = daily.getSnowAmount();
+
+        double unitDivisor = isImperial ? 25.4 : 1.0;
+        String unitLabel = isImperial ? "in" : "mm";
+
+        if (rainAmount > 0) {
+            double rainDisplay = rainAmount / unitDivisor;
+            summary.append(String.format(" • %.1f%s rain", rainDisplay, unitLabel));
+        }
+
+        if (snowAmount > 0) {
+            double snowDisplay = snowAmount / unitDivisor;
+            summary.append(String.format(" • %.1f%s snow", snowDisplay, unitLabel));
+        }
+
+        return summary.toString();
     }
 
     /**

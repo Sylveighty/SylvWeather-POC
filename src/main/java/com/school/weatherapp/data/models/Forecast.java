@@ -37,6 +37,8 @@ public class Forecast {
     private int humidity;             // Percentage.
     private double windSpeed;         // mph or m/s.
     private int precipitation;        // Percentage chance (0-100).
+    private double rainAmount;        // mm.
+    private double snowAmount;        // mm.
     
     // ==================== Constructors ====================
     
@@ -158,6 +160,22 @@ public class Forecast {
     
     public void setPrecipitation(int precipitation) {
         this.precipitation = precipitation;
+    }
+
+    public double getRainAmount() {
+        return rainAmount;
+    }
+
+    public void setRainAmount(double rainAmount) {
+        this.rainAmount = rainAmount;
+    }
+
+    public double getSnowAmount() {
+        return snowAmount;
+    }
+
+    public void setSnowAmount(double snowAmount) {
+        this.snowAmount = snowAmount;
     }
     
     // ==================== Utility Methods ====================

@@ -42,14 +42,15 @@ public class WeatherService {
             .build();
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApply(response -> {
+            .thenCompose(response -> {
                 try {
                     validateApiResponse(response);
                     String units = resolveUnits();
-                    return parseWeatherResponse(response.body(), units);
+                    Weather weather = parseWeatherResponse(response.body(), units);
+                    return enrichWeatherWithUvIndexAsync(weather, units);
                 } catch (Exception ex) {
                     System.err.println("Error fetching weather: " + ex.getMessage());
-                    return null;
+                    return CompletableFuture.completedFuture(null);
                 }
             })
             .exceptionally(ex -> {
@@ -73,7 +74,8 @@ public class WeatherService {
         validateApiResponse(response);
 
         String units = resolveUnits();
-        return parseWeatherResponse(response.body(), units);
+        Weather weather = parseWeatherResponse(response.body(), units);
+        return enrichWeatherWithUvIndex(weather, units);
     }
 
     public boolean isApiKeyConfigured() {
@@ -121,6 +123,15 @@ public class WeatherService {
         weather.setCityName(json.get("name").getAsString());
         JsonObject sys = json.getAsJsonObject("sys");
         weather.setCountry(sys.get("country").getAsString());
+        if (json.has("coord")) {
+            JsonObject coord = json.getAsJsonObject("coord");
+            if (coord.has("lat")) {
+                weather.setLatitude(coord.get("lat").getAsDouble());
+            }
+            if (coord.has("lon")) {
+                weather.setLongitude(coord.get("lon").getAsDouble());
+            }
+        }
         if (sys.has("sunrise")) {
             weather.setSunriseTimestamp(sys.get("sunrise").getAsLong());
         }
@@ -168,5 +179,94 @@ public class WeatherService {
             weather.setUvIndex(json.get("uvi").getAsInt());
         }
         weather.setTimestamp(json.get("dt").getAsLong());
+    }
+
+    private CompletableFuture<Weather> enrichWeatherWithUvIndexAsync(Weather weather, String units) {
+        if (weather == null || Double.isNaN(weather.getLatitude()) || Double.isNaN(weather.getLongitude())) {
+            return CompletableFuture.completedFuture(weather);
+        }
+
+        return fetchUvIndexAsync(weather.getLatitude(), weather.getLongitude(), units)
+            .thenApply(uvIndex -> {
+                if (uvIndex >= 0) {
+                    weather.setUvIndex(uvIndex);
+                }
+                return weather;
+            })
+            .exceptionally(ex -> {
+                System.err.println("Error fetching UV index: " + ex.getMessage());
+                return weather;
+            });
+    }
+
+    private Weather enrichWeatherWithUvIndex(Weather weather, String units) {
+        if (weather == null || Double.isNaN(weather.getLatitude()) || Double.isNaN(weather.getLongitude())) {
+            return weather;
+        }
+
+        try {
+            int uvIndex = fetchUvIndex(weather.getLatitude(), weather.getLongitude(), units);
+            if (uvIndex >= 0) {
+                weather.setUvIndex(uvIndex);
+            }
+        } catch (Exception ex) {
+            System.err.println("Error fetching UV index: " + ex.getMessage());
+        }
+
+        return weather;
+    }
+
+    private CompletableFuture<Integer> fetchUvIndexAsync(double lat, double lon, String units) {
+        String url = buildUvIndexApiUrl(lat, lon, units);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply(response -> {
+                try {
+                    validateApiResponse(response);
+                    return parseUvIndex(response.body());
+                } catch (Exception ex) {
+                    System.err.println("Error fetching UV index: " + ex.getMessage());
+                    return -1;
+                }
+            });
+    }
+
+    private int fetchUvIndex(double lat, double lon, String units) throws Exception {
+        String url = buildUvIndexApiUrl(lat, lon, units);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        validateApiResponse(response);
+        return parseUvIndex(response.body());
+    }
+
+    private String buildUvIndexApiUrl(double lat, double lon, String units) {
+        return String.format("%s/onecall?lat=%s&lon=%s&units=%s&exclude=minutely,hourly,daily,alerts&appid=%s",
+            AppConfig.WEATHER_API_BASE_URL,
+            lat,
+            lon,
+            units,
+            AppConfig.WEATHER_API_KEY
+        );
+    }
+
+    private int parseUvIndex(String jsonResponse) {
+        JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
+        if (json.has("current")) {
+            JsonObject current = json.getAsJsonObject("current");
+            if (current.has("uvi")) {
+                return (int) Math.round(current.get("uvi").getAsDouble());
+            }
+        }
+        return -1;
     }
 }
