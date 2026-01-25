@@ -22,9 +22,7 @@ import java.util.concurrent.CompletableFuture;
  * POC behavior:
  * - Attempts to retrieve alerts using a geocoding step (city -> lat/lon).
  * - Then attempts an alerts-capable endpoint.
- * - If the API path is unavailable or fails, returns simulated alerts so the UI can demonstrate the feature.
- *
- * This keeps the app demo-friendly even when alert data is not available for a location or plan.
+ * - If the API path is unavailable or fails, reports an unavailable/failed status.
  */
 public class AlertService {
 
@@ -35,30 +33,44 @@ public class AlertService {
         this.httpClient = HttpClient.newHttpClient();
     }
 
-    public CompletableFuture<List<Alert>> getAlertsAsync(String cityName) {
+    public CompletableFuture<AlertFetchResult> getAlertsAsync(String cityName) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return getAlerts(cityName);
+                return getAlertsResult(cityName);
             } catch (Exception e) {
-                System.err.println("Error fetching alerts: " + e.getMessage());
-                return new ArrayList<>();
+                String message = "Error fetching alerts: " + e.getMessage();
+                System.err.println(message);
+                return new AlertFetchResult(AlertFetchStatus.FAILED, new ArrayList<>(), message);
             }
         });
     }
 
-    public List<Alert> getAlerts(String cityName) {
+    public AlertFetchResult getAlertsResult(String cityName) {
         try {
             List<Alert> fromApi = fetchFromApi(cityName);
             if (!fromApi.isEmpty()) {
-                return fromApi;
+                return new AlertFetchResult(AlertFetchStatus.LIVE, fromApi, "Live alerts retrieved.");
             }
+            return new AlertFetchResult(AlertFetchStatus.NO_ALERTS, fromApi, "No active alerts returned.");
+        } catch (AlertApiException e) {
+            if (AppConfig.ENABLE_SIMULATED_ALERTS) {
+                return new AlertFetchResult(AlertFetchStatus.SIMULATED, getSimulatedAlerts(), e.getMessage());
+            }
+            return new AlertFetchResult(e.getStatus(), new ArrayList<>(), e.getMessage());
         } catch (Exception e) {
-            System.out.println("Alert API unavailable, using simulated alerts.");
+            String message = "Alert request failed: " + e.getMessage();
+            if (AppConfig.ENABLE_SIMULATED_ALERTS) {
+                return new AlertFetchResult(AlertFetchStatus.SIMULATED, getSimulatedAlerts(), message);
+            }
+            return new AlertFetchResult(AlertFetchStatus.FAILED, new ArrayList<>(), message);
         }
-        return getSimulatedAlerts();
     }
 
     private List<Alert> fetchFromApi(String cityName) throws Exception {
+        if (AppConfig.WEATHER_API_KEY == null || AppConfig.WEATHER_API_KEY.isBlank()) {
+            throw new AlertApiException(AlertFetchStatus.FAILED, "Missing OpenWeather API key.");
+        }
+
         double[] coords = getCityCoordinates(cityName);
         if (coords == null) {
             return new ArrayList<>();
@@ -69,7 +81,7 @@ public class AlertService {
         String url = buildOneCallUrl(coords[0], coords[1]);
 
         HttpResponse<String> response = sendHttpRequest(url);
-        validateApiResponse(response);
+        validateApiResponse(response, "One Call");
 
         return parseAlertsResponse(response.body());
     }
@@ -87,13 +99,8 @@ public class AlertService {
             AppConfig.WEATHER_API_KEY
         );
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(geoUrl))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) return null;
+        HttpResponse<String> response = sendHttpRequest(geoUrl);
+        validateApiResponse(response, "Geocoding");
 
         JsonArray geoArray = JsonParser.parseString(response.body()).getAsJsonArray();
         if (geoArray.size() == 0) return null;
@@ -109,7 +116,7 @@ public class AlertService {
      * One Call (alerts-capable) request.
      * We exclude other blocks to keep response smaller (POC).
      *
-     * Note: Alerts availability may depend on API plan/region.
+     * Note: Alerts availability may depend on API plan/region and One Call 3.0 access.
      */
     private String buildOneCallUrl(double lat, double lon) {
         return String.format(
@@ -129,10 +136,29 @@ public class AlertService {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private void validateApiResponse(HttpResponse<String> response) throws Exception {
+    private void validateApiResponse(HttpResponse<String> response, String endpointName) throws AlertApiException {
         if (response.statusCode() != 200) {
-            throw new Exception("API returned status code: " + response.statusCode());
+            throw mapStatusToException(response.statusCode(), endpointName);
         }
+    }
+
+    private AlertApiException mapStatusToException(int statusCode, String endpointName) {
+        if (statusCode == 404) {
+            return new AlertApiException(
+                AlertFetchStatus.UNAVAILABLE,
+                String.format("%s endpoint unavailable (HTTP %d).", endpointName, statusCode)
+            );
+        }
+        if (statusCode == 401 || statusCode == 403) {
+            return new AlertApiException(
+                AlertFetchStatus.FAILED,
+                String.format("%s request unauthorized (HTTP %d).", endpointName, statusCode)
+            );
+        }
+        return new AlertApiException(
+            AlertFetchStatus.FAILED,
+            String.format("%s request failed (HTTP %d).", endpointName, statusCode)
+        );
     }
 
     /**
@@ -206,5 +232,50 @@ public class AlertService {
         alerts.add(alert1);
 
         return alerts;
+    }
+
+    public enum AlertFetchStatus {
+        LIVE,
+        NO_ALERTS,
+        UNAVAILABLE,
+        FAILED,
+        SIMULATED
+    }
+
+    public static final class AlertFetchResult {
+        private final AlertFetchStatus status;
+        private final List<Alert> alerts;
+        private final String message;
+
+        public AlertFetchResult(AlertFetchStatus status, List<Alert> alerts, String message) {
+            this.status = status;
+            this.alerts = alerts == null ? new ArrayList<>() : alerts;
+            this.message = message;
+        }
+
+        public AlertFetchStatus getStatus() {
+            return status;
+        }
+
+        public List<Alert> getAlerts() {
+            return alerts;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
+    private static final class AlertApiException extends Exception {
+        private final AlertFetchStatus status;
+
+        private AlertApiException(AlertFetchStatus status, String message) {
+            super(message);
+            this.status = status;
+        }
+
+        public AlertFetchStatus getStatus() {
+            return status;
+        }
     }
 }

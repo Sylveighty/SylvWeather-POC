@@ -4,6 +4,8 @@ import com.school.weatherapp.data.models.Alert;
 import com.school.weatherapp.data.models.AlertHistoryEntry;
 import com.school.weatherapp.data.services.AlertHistoryService;
 import com.school.weatherapp.data.services.AlertService;
+import com.school.weatherapp.data.services.AlertService.AlertFetchResult;
+import com.school.weatherapp.data.services.AlertService.AlertFetchStatus;
 import com.school.weatherapp.util.DateTimeUtil;
 import com.school.weatherapp.util.ThemeUtil;
 import javafx.application.Platform;
@@ -20,9 +22,7 @@ import java.util.List;
  *
  * POC note:
  * - Alerts availability can vary by location and OpenWeather plan/endpoints.
- * - The service may return simulated alerts when live alerts are unavailable.
- *
- * This panel displays which city the alerts correspond to and whether data is live or simulated.
+ * - The service reports whether alerts are live, unavailable, or failed.
  */
 public class AlertPanel extends VBox {
 
@@ -117,37 +117,43 @@ public class AlertPanel extends VBox {
         showLoading();
 
         alertService.getAlertsAsync(cityName)
-            .thenAccept(alerts -> Platform.runLater(() -> {
-                if (alerts == null || alerts.isEmpty()) {
-                    contextLabel.setText("Alerts for: " + safeCity() + " (none available)");
-                    showNoAlerts();
-                    alertHistoryService.record(currentCity, alerts);
-                    updateHistory(alertHistoryService.getHistory(currentCity));
-                    return;
-                }
+            .thenAccept(result -> Platform.runLater(() -> handleAlertResult(result)));
+    }
 
-                // Heuristic: if the service returns exactly the known simulated alert title,
-                // label it as simulated. This avoids changing AlertService yet.
-                boolean simulated = looksSimulated(alerts);
+    private void handleAlertResult(AlertFetchResult result) {
+        AlertFetchStatus status = result != null ? result.getStatus() : AlertFetchStatus.FAILED;
+        List<Alert> alerts = result != null ? result.getAlerts() : List.of();
+        String message = result != null ? result.getMessage() : "Alert request failed.";
 
-                contextLabel.setText("Alerts for: " + safeCity() + (simulated ? " (simulated fallback)" : " (live)"));
+        switch (status) {
+            case LIVE -> {
+                contextLabel.setText("Alerts for: " + safeCity() + " (live)");
                 showAlerts(alerts);
-                alertHistoryService.record(currentCity, alerts);
-                updateHistory(alertHistoryService.getHistory(currentCity));
-            }));
+            }
+            case NO_ALERTS -> {
+                contextLabel.setText("Alerts for: " + safeCity() + " (none available)");
+                showNoAlerts();
+            }
+            case SIMULATED -> {
+                contextLabel.setText("Alerts for: " + safeCity() + " (simulated fallback)");
+                showAlerts(alerts);
+            }
+            case UNAVAILABLE -> {
+                contextLabel.setText("Alerts for: " + safeCity() + " (unavailable)");
+                showAlertsUnavailable(message);
+            }
+            case FAILED -> {
+                contextLabel.setText("Alerts for: " + safeCity() + " (request failed)");
+                showAlertsUnavailable(message);
+            }
+        }
+
+        alertHistoryService.record(currentCity, alerts);
+        updateHistory(alertHistoryService.getHistory(currentCity));
     }
 
     private String safeCity() {
         return currentCity.isEmpty() ? "(unknown city)" : currentCity;
-    }
-
-    private boolean looksSimulated(List<Alert> alerts) {
-        // The simulated alert title in the current service is "Moderate Wind Advisory".
-        // If you change the simulated data later, update this heuristic accordingly.
-        if (alerts.size() != 1) return false;
-        Alert a = alerts.get(0);
-        if (a == null || a.getTitle() == null) return false;
-        return "Moderate Wind Advisory".equalsIgnoreCase(a.getTitle().trim());
     }
 
     // -------------------- Rendering --------------------
@@ -180,6 +186,22 @@ public class AlertPanel extends VBox {
         none.getStyleClass().add("label-subtle");
 
         alertsContainer.getChildren().add(none);
+    }
+
+    private void showAlertsUnavailable(String message) {
+        alertsContainer.getChildren().clear();
+
+        Label unavailable = new Label("Alerts unavailable.");
+        unavailable.getStyleClass().add("label-subtle");
+
+        alertsContainer.getChildren().add(unavailable);
+
+        if (message != null && !message.isBlank()) {
+            Label detail = new Label(message.trim());
+            detail.getStyleClass().add("label-subtle");
+            detail.setWrapText(true);
+            alertsContainer.getChildren().add(detail);
+        }
     }
 
     private void showAlerts(List<Alert> alerts) {
