@@ -2,7 +2,7 @@
 
 ## Overview
 
-Weathering with You is a Java 17+ / JavaFX desktop weather dashboard built as a proof-of-concept (POC). It demonstrates the JavaFX application lifecycle, modular UI composition, and integration with the OpenWeather REST API.
+SylvWeather-POC is a Java 17+ / JavaFX desktop weather dashboard built as a proof-of-concept (POC). It demonstrates the JavaFX application lifecycle, modular UI composition, and integration with the OpenWeather REST API.
 
 This project prioritizes clarity and learning value over production concerns such as caching, rate limiting, or exhaustive error handling. It is intended for academic evaluation, technical presentations, and early-career portfolio review.
 
