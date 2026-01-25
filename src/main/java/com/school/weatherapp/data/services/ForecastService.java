@@ -55,7 +55,7 @@ public class ForecastService {
                 return getForecast(cityName);
             } catch (Exception e) {
                 System.err.println("Error fetching forecast: " + e.getMessage());
-                return cacheService.loadForecast();
+                return cacheService.loadForecast(cityName);
             }
         });
     }
@@ -73,7 +73,7 @@ public class ForecastService {
             cacheService.saveForecast(cityName, forecasts);
             return forecasts;
         } catch (Exception ex) {
-            List<Forecast> cached = cacheService.loadForecast();
+            List<Forecast> cached = cacheService.loadForecast(cityName);
             if (!cached.isEmpty()) {
                 return cached;
             }
@@ -111,11 +111,11 @@ public class ForecastService {
                 return grouped;
             } catch (Exception e) {
                 System.err.println("Error fetching daily forecast: " + e.getMessage());
-                List<Forecast> cachedDaily = cacheService.loadDailyForecast();
+                List<Forecast> cachedDaily = cacheService.loadDailyForecast(cityName);
                 if (!cachedDaily.isEmpty()) {
                     return cachedDaily;
                 }
-                List<Forecast> cachedHourly = cacheService.loadForecast();
+                List<Forecast> cachedHourly = cacheService.loadForecast(cityName);
                 if (!cachedHourly.isEmpty()) {
                     return groupForecastsByDate(cachedHourly);
                 }
