@@ -15,7 +15,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
@@ -50,8 +49,6 @@ public class MainApp extends Application {
     private ScrollPane scrollPane;
     private Scene scene;
     private Label toastLabel;
-    private ComboBox<String> savedLocationsCombo;
-    private Button savedLocationButton;
 
     // Panels.
     private CurrentWeatherPanel currentWeatherPanel;
@@ -149,12 +146,10 @@ public class MainApp extends Application {
         HBox.setHgrow(toastLabel, Priority.ALWAYS);
         toastLabel.setMaxWidth(Double.MAX_VALUE);
 
-        HBox savedLocationsBox = createSavedLocationsControls();
-
         Button unitToggle = createUnitToggleButton();
         Button themeToggle = createThemeToggleButton();
 
-        HBox actionButtons = new HBox(10, savedLocationsBox, unitToggle, themeToggle);
+        HBox actionButtons = new HBox(10, unitToggle, themeToggle);
         actionButtons.setAlignment(Pos.CENTER_RIGHT);
 
         topBar.getChildren().addAll(title, toastLabel, actionButtons);
@@ -200,26 +195,6 @@ public class MainApp extends Application {
         return themeToggle;
     }
 
-    private HBox createSavedLocationsControls() {
-        Label savedLabel = new Label("Saved");
-        savedLabel.getStyleClass().add("label-subtle");
-
-        savedLocationsCombo = new ComboBox<>();
-        savedLocationsCombo.setPromptText("Saved locations");
-        savedLocationsCombo.getStyleClass().add("saved-locations-combo");
-        savedLocationsCombo.setPrefWidth(180);
-        savedLocationsCombo.setOnAction(event -> handleSavedLocationSelection());
-
-        savedLocationButton = new Button("Go");
-        savedLocationButton.getStyleClass().add("saved-location-button");
-        savedLocationButton.setOnAction(event -> handleSavedLocationSelection());
-
-        HBox container = new HBox(8, savedLabel, savedLocationsCombo, savedLocationButton);
-        container.getStyleClass().add("saved-locations-box");
-        container.setAlignment(Pos.CENTER_RIGHT);
-        return container;
-    }
-
     private void initializePanels() {
         favoritesService = new FavoritesService();
         currentWeatherPanel = new CurrentWeatherPanel(favoritesService);
@@ -238,9 +213,13 @@ public class MainApp extends Application {
         // Top section: current + favorites.
         HBox topSection = new HBox(20);
         topSection.setAlignment(Pos.TOP_CENTER);
+        topSection.setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(topSection, Priority.ALWAYS);
 
         HBox.setHgrow(currentWeatherPanel, Priority.ALWAYS);
         HBox.setHgrow(favoritesPanel, Priority.ALWAYS);
+        currentWeatherPanel.setMaxHeight(Double.MAX_VALUE);
+        favoritesPanel.setMaxHeight(Double.MAX_VALUE);
 
         topSection.getChildren().addAll(currentWeatherPanel, favoritesPanel);
 
@@ -265,17 +244,14 @@ public class MainApp extends Application {
         currentWeatherPanel.setOnCityChange(this::loadForecasts);
         currentWeatherPanel.setOnFavoritesChange(() -> {
             favoritesPanel.refreshFavorites();
-            refreshSavedLocations();
         });
 
         favoritesPanel.setOnCitySelect(cityName -> currentWeatherPanel.loadCityWeather(cityName));
-        favoritesPanel.setOnFavoritesChange(this::refreshSavedLocations);
     }
 
     private void loadInitialData() {
         loadForecasts(AppConfig.DEFAULT_CITY);
         refreshAllTemperatures();
-        refreshSavedLocations();
     }
 
     /**
@@ -355,29 +331,6 @@ public class MainApp extends Application {
         PauseTransition pause = new PauseTransition(Duration.seconds(3));
         pause.setOnFinished(event -> toastLabel.setVisible(false));
         pause.playFromStart();
-    }
-
-    private void refreshSavedLocations() {
-        if (savedLocationsCombo == null || favoritesService == null) {
-            return;
-        }
-        var favorites = favoritesService.getFavorites();
-        savedLocationsCombo.getItems().setAll(favorites);
-        boolean hasFavorites = !favorites.isEmpty();
-        savedLocationsCombo.setDisable(!hasFavorites);
-        savedLocationButton.setDisable(!hasFavorites);
-        savedLocationsCombo.getSelectionModel().clearSelection();
-    }
-
-    private void handleSavedLocationSelection() {
-        if (savedLocationsCombo == null) {
-            return;
-        }
-        String city = savedLocationsCombo.getValue();
-        if (city == null || city.isBlank()) {
-            return;
-        }
-        currentWeatherPanel.loadCityWeather(city);
     }
 
     public static void main(String[] args) {
