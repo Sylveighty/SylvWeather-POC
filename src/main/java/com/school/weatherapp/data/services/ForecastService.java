@@ -79,7 +79,18 @@ public class ForecastService {
      * Daily forecast view: groups by calendar date and produces daily min/max summaries.
      */
     public CompletableFuture<List<Forecast>> getDailyForecastAsync(String cityName) {
-        return getForecastAsync(cityName).thenApply(this::groupForecastsByDate);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                List<Forecast> daily = getDailyForecast(cityName);
+                if (!daily.isEmpty()) {
+                    return daily;
+                }
+                return groupForecastsByDate(getForecast(cityName));
+            } catch (Exception e) {
+                System.err.println("Error fetching daily forecast: " + e.getMessage());
+                return new ArrayList<>();
+            }
+        });
     }
 
     private String buildForecastApiUrl(String cityName) {
@@ -179,6 +190,20 @@ public class ForecastService {
             int precipPercent = (int) (item.get("pop").getAsDouble() * 100);
             forecast.setPrecipitation(precipPercent);
         }
+
+        if (item.has("rain")) {
+            JsonObject rain = item.getAsJsonObject("rain");
+            if (rain.has("3h")) {
+                forecast.setRainAmount(rain.get("3h").getAsDouble());
+            }
+        }
+
+        if (item.has("snow")) {
+            JsonObject snow = item.getAsJsonObject("snow");
+            if (snow.has("3h")) {
+                forecast.setSnowAmount(snow.get("3h").getAsDouble());
+            }
+        }
     }
 
     /**
@@ -205,7 +230,7 @@ public class ForecastService {
             Forecast daily = createDailyForecast(entry.getKey(), dayForecasts);
             dailyForecasts.add(daily);
 
-            if (dailyForecasts.size() >= 7) break;
+            if (dailyForecasts.size() >= 10) break;
         }
 
         return dailyForecasts;
@@ -248,6 +273,140 @@ public class ForecastService {
         double avgWind = dayForecasts.stream().mapToDouble(Forecast::getWindSpeed).average().orElse(first.getWindSpeed());
         daily.setWindSpeed(avgWind);
 
+        int maxPop = dayForecasts.stream().mapToInt(Forecast::getPrecipitation).max().orElse(0);
+        daily.setPrecipitation(maxPop);
+
+        double totalRain = dayForecasts.stream().mapToDouble(Forecast::getRainAmount).sum();
+        daily.setRainAmount(totalRain);
+
+        double totalSnow = dayForecasts.stream().mapToDouble(Forecast::getSnowAmount).sum();
+        daily.setSnowAmount(totalSnow);
+
         return daily;
+    }
+
+    private List<Forecast> getDailyForecast(String cityName) throws Exception {
+        String units = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "imperial" : "metric";
+        double[] coords = fetchCoordinates(cityName);
+        if (coords == null) {
+            return new ArrayList<>();
+        }
+
+        String apiUrl = buildDailyForecastApiUrl(coords[0], coords[1], units);
+        HttpResponse<String> response = sendHttpRequest(apiUrl);
+        validateApiResponse(response);
+
+        return parseDailyForecastResponse(response.body(), units);
+    }
+
+    private double[] fetchCoordinates(String cityName) throws Exception {
+        String encodedCity = URLEncoder.encode(cityName, StandardCharsets.UTF_8);
+        String units = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "imperial" : "metric";
+
+        String url = String.format("%s/weather?q=%s&units=%s&appid=%s",
+            AppConfig.WEATHER_API_BASE_URL,
+            encodedCity,
+            units,
+            AppConfig.WEATHER_API_KEY
+        );
+
+        HttpResponse<String> response = sendHttpRequest(url);
+        validateApiResponse(response);
+
+        JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+        if (!json.has("coord")) {
+            return null;
+        }
+
+        JsonObject coord = json.getAsJsonObject("coord");
+        if (!coord.has("lat") || !coord.has("lon")) {
+            return null;
+        }
+
+        return new double[]{coord.get("lat").getAsDouble(), coord.get("lon").getAsDouble()};
+    }
+
+    private String buildDailyForecastApiUrl(double lat, double lon, String units) {
+        return String.format("%s/onecall?lat=%s&lon=%s&units=%s&exclude=minutely,hourly,alerts&appid=%s",
+            AppConfig.WEATHER_API_BASE_URL,
+            lat,
+            lon,
+            units,
+            AppConfig.WEATHER_API_KEY
+        );
+    }
+
+    private List<Forecast> parseDailyForecastResponse(String jsonResponse, String units) {
+        List<Forecast> forecasts = new ArrayList<>();
+
+        JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
+        JsonArray dailyArray = json.getAsJsonArray("daily");
+        if (dailyArray == null) {
+            return forecasts;
+        }
+
+        int limit = Math.min(10, dailyArray.size());
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE").withZone(ZoneId.systemDefault());
+
+        for (int i = 0; i < limit; i++) {
+            JsonObject item = dailyArray.get(i).getAsJsonObject();
+            Forecast forecast = new Forecast();
+
+            if (item.has("dt")) {
+                long timestamp = item.get("dt").getAsLong();
+                forecast.setTimestamp(timestamp);
+                String dayLabel = dayFormatter.format(Instant.ofEpochSecond(timestamp));
+                forecast.setDayOfWeek(dayLabel);
+                forecast.setTimeLabel(dayLabel);
+            }
+
+            if (item.has("temp")) {
+                JsonObject temp = item.getAsJsonObject("temp");
+                if (temp.has("min")) {
+                    forecast.setTempMin(temp.get("min").getAsDouble());
+                }
+                if (temp.has("max")) {
+                    forecast.setTempMax(temp.get("max").getAsDouble());
+                }
+                if (temp.has("day")) {
+                    forecast.setTemperature(temp.get("day").getAsDouble());
+                } else {
+                    forecast.setTemperature((forecast.getTempMin() + forecast.getTempMax()) / 2);
+                }
+            }
+
+            if (item.has("humidity")) {
+                forecast.setHumidity(item.get("humidity").getAsInt());
+            }
+
+            if (item.has("wind_speed")) {
+                forecast.setWindSpeed(item.get("wind_speed").getAsDouble());
+            }
+
+            if (item.has("pop")) {
+                int precipPercent = (int) (item.get("pop").getAsDouble() * 100);
+                forecast.setPrecipitation(precipPercent);
+            }
+
+            if (item.has("rain")) {
+                forecast.setRainAmount(item.get("rain").getAsDouble());
+            }
+
+            if (item.has("snow")) {
+                forecast.setSnowAmount(item.get("snow").getAsDouble());
+            }
+
+            if (item.has("weather") && item.getAsJsonArray("weather").size() > 0) {
+                JsonObject weather = item.getAsJsonArray("weather").get(0).getAsJsonObject();
+                forecast.setCondition(weather.get("main").getAsString());
+                forecast.setDescription(weather.get("description").getAsString());
+                forecast.setIconCode(weather.get("id").getAsString());
+            }
+
+            forecast.setTemperatureUnit(units);
+            forecasts.add(forecast);
+        }
+
+        return forecasts;
     }
 }
