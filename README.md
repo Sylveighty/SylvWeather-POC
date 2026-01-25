@@ -1,12 +1,12 @@
-# SylvWeather-POC
+# Weathering with You
 
-## 1. Project Overview
+## Overview
 
-SylvWeather-POC is a Java 17+ / JavaFX desktop weather dashboard built as a proof-of-concept (POC). The project demonstrates the JavaFX application lifecycle, modular UI composition, and integration with a real external REST API (OpenWeather).
+Weathering with You is a Java 17+ / JavaFX desktop weather dashboard built as a proof-of-concept (POC). It demonstrates the JavaFX application lifecycle, modular UI composition, and integration with the OpenWeather REST API.
 
-This project prioritizes clarity, structure, and learning value over production concerns such as caching, persistence layers, rate limiting, and exhaustive error handling. It is intended for academic evaluation, technical presentations, and early-career portfolio review.
+This project prioritizes clarity and learning value over production concerns such as caching, rate limiting, or exhaustive error handling. It is intended for academic evaluation, technical presentations, and early-career portfolio review.
 
-## 2. UI Preview
+### UI Preview
 
 > Screenshots to be added.
 
@@ -17,20 +17,7 @@ Planned image locations:
 - docs/images/hourly-and-daily-forecast.png
 - docs/images/alerts-panel.png
 
-### Grading Checklist (Demo Flow)
-
-Use this quick flow to verify the required features during evaluation:
-
-1. Launch the app (`gradle run` or `./gradlew run`).
-2. Search for a city (e.g., “New York”) and confirm current conditions load.
-3. Toggle °F/°C to verify unit changes.
-4. Toggle light/dark theme to verify styling updates.
-5. Add a city to Favorites and confirm it appears in the list.
-6. Select a favorite city to reload weather.
-7. Review hourly and daily forecast panels.
-8. Confirm alerts panel shows live or simulated alerts based on availability.
-
-## 3. Implemented Features
+## Features
 
 - Search weather by city name and display current conditions
 - Live data retrieval from the OpenWeather API
@@ -41,7 +28,7 @@ Use this quick flow to verify the required features during evaluation:
 - Temperature unit toggle (Celsius / Fahrenheit)
 - Alerts panel with simulated fallback when live alerts are unavailable
 
-## 4. Architecture Overview
+## Architecture
 
 ### Package Structure
 
@@ -73,7 +60,67 @@ Use this quick flow to verify the required features during evaluation:
 - Panels initialized and composed
 - Initial data loaded using a default city
 
-## 5. Weather Data Source
+### Technology Stack
+
+- Java 17+
+- JavaFX
+- Gradle
+- OpenWeather API
+- Gson
+- JUnit 5
+
+### Design Decisions
+
+- JavaFX chosen for desktop UI clarity
+- OpenWeather selected for accessible REST endpoints
+- Modular panel-based UI structure
+- Readability prioritized over production complexity
+- Emoji condition icons use system emoji fonts with fallbacks, and condition text is always shown so the UI stays readable even when emojis are unsupported.
+
+## Getting Started
+
+### Prerequisites + API Key + Build/Run
+
+- JDK 17+
+- Gradle
+- Internet connection
+- OpenWeather API key (set as `OPENWEATHER_API_KEY`)
+
+```bash
+# macOS/Linux
+export OPENWEATHER_API_KEY="YOUR_KEY_HERE"
+./gradlew build
+./gradlew run
+```
+
+```powershell
+# Windows (PowerShell)
+setx OPENWEATHER_API_KEY "YOUR_KEY_HERE"
+gradlew.bat build
+gradlew.bat run
+```
+
+### Demo flow
+
+1. Launch the app (`gradle run` or `./gradlew run`).
+2. Search for a city (e.g., “New York”) and confirm current conditions load.
+3. Toggle °F/°C to verify unit changes.
+4. Toggle light/dark theme to verify styling updates.
+5. Add a city to Favorites and confirm it appears in the list.
+6. Select a favorite city to reload weather.
+7. Review hourly and daily forecast panels.
+8. Confirm alerts panel shows live or simulated alerts based on availability.
+
+### Favorites persistence
+
+Favorites are stored in a simple text file (`favorites.txt`) in the project working directory.  
+To reset favorites, delete the file and restart the app. This is intentionally lightweight for the POC.
+
+### Troubleshooting
+
+- If the API key is missing or invalid, the UI will show a load error and no data will appear.
+
+## Data Source
 
 This project uses the OpenWeather API.
 
@@ -86,75 +133,7 @@ Alerts may be simulated depending on API availability.
 
 API keys are read from the environment variable OPENWEATHER_API_KEY and must not be committed to version control.
 
-## 6. Technology Stack
-
-- Java 17+
-- JavaFX
-- Gradle
-- OpenWeather API
-- Gson
-- JUnit 5
-
-## 7. Getting Started
-
-### Quick Start (copy/paste)
-
-```bash
-# macOS/Linux
-export OPENWEATHER_API_KEY="YOUR_KEY_HERE"
-
-./gradlew build
-./gradlew run
-```
-
-```powershell
-# Windows (PowerShell)
-setx OPENWEATHER_API_KEY "YOUR_KEY_HERE"
-
-gradlew.bat build
-gradlew.bat run
-```
-
-### Prerequisites
-
-- JDK 17+
-- Gradle
-- Internet connection
-
-### API Key Setup
-
-Set the OpenWeather API key as an environment variable.
-
-### Windows (PowerShell)
-setx OPENWEATHER_API_KEY "YOUR_KEY_HERE"
-
-### macOS/Linux
-export OPENWEATHER_API_KEY="YOUR_KEY_HERE"
-
-### Build
-gradle build
-
-### Run
-gradle run
-
-### Favorites Persistence
-
-Favorites are stored in a simple text file (`favorites.txt`) in the project working directory.  
-To reset favorites, delete the file and restart the app. This is intentionally lightweight for the POC.
-
-### Troubleshooting
-
-- If the API key is missing or invalid, the UI will show a load error and no data will appear.
-
-## 8. Design Decisions
-
-- JavaFX chosen for desktop UI clarity
-- OpenWeather selected for accessible REST endpoints
-- Modular panel-based UI structure
-- Readability prioritized over production complexity
-- Emoji condition icons use system emoji fonts with fallbacks, and condition text is always shown so the UI stays readable even when emojis are unsupported.
-
-## 9. Limitations
+## Limitations
 
 - Proof-of-concept only
 - Limited automated testing
@@ -162,7 +141,7 @@ To reset favorites, delete the file and restart the app. This is intentionally l
 - Minimal API resilience
 - Simulated alerts may be shown
 
-## 10. Future Improvements
+## Future Improvements
 
 - Improved error handling
 - API resilience enhancements
@@ -170,7 +149,7 @@ To reset favorites, delete the file and restart the app. This is intentionally l
 - UI polish and theming
 - Cross-platform packaging
 
-## 11. License & Usage
+## License
 
 Educational and non-commercial use only.  
 OpenWeather usage must comply with their terms of service.
