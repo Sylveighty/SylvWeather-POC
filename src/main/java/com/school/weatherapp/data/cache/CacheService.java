@@ -32,9 +32,9 @@ public class CacheService {
         writeCache(Path.of(AppConfig.WEATHER_CACHE_FILE_PATH), entry);
     }
 
-    public Weather loadWeather() {
+    public Weather loadWeather(String cityName) {
         WeatherCacheEntry entry = readCache(Path.of(AppConfig.WEATHER_CACHE_FILE_PATH), WeatherCacheEntry.class);
-        if (entry == null || entry.weather == null) {
+        if (entry == null || entry.weather == null || !isCityMatch(cityName, entry.cityName)) {
             return null;
         }
         entry.weather.setCached(true);
@@ -49,9 +49,9 @@ public class CacheService {
         writeCache(Path.of(AppConfig.FORECAST_CACHE_FILE_PATH), entry);
     }
 
-    public List<Forecast> loadForecast() {
+    public List<Forecast> loadForecast(String cityName) {
         ForecastCacheEntry entry = readCache(Path.of(AppConfig.FORECAST_CACHE_FILE_PATH), ForecastCacheEntry.class);
-        if (entry == null || entry.forecasts == null) {
+        if (entry == null || entry.forecasts == null || !isCityMatch(cityName, entry.cityName)) {
             return new ArrayList<>();
         }
         entry.forecasts.forEach(forecast -> forecast.setCached(true));
@@ -66,13 +66,20 @@ public class CacheService {
         writeCache(Path.of(AppConfig.DAILY_FORECAST_CACHE_FILE_PATH), entry);
     }
 
-    public List<Forecast> loadDailyForecast() {
+    public List<Forecast> loadDailyForecast(String cityName) {
         ForecastCacheEntry entry = readCache(Path.of(AppConfig.DAILY_FORECAST_CACHE_FILE_PATH), ForecastCacheEntry.class);
-        if (entry == null || entry.forecasts == null) {
+        if (entry == null || entry.forecasts == null || !isCityMatch(cityName, entry.cityName)) {
             return new ArrayList<>();
         }
         entry.forecasts.forEach(forecast -> forecast.setCached(true));
         return entry.forecasts;
+    }
+
+    private boolean isCityMatch(String requestedCity, String cachedCity) {
+        if (requestedCity == null || cachedCity == null) {
+            return false;
+        }
+        return cachedCity.equalsIgnoreCase(requestedCity);
     }
 
     private void writeCache(Path path, Object payload) {

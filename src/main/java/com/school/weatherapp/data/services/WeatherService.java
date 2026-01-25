@@ -63,12 +63,12 @@ public class WeatherService {
                         });
                 } catch (Exception ex) {
                     System.err.println("Error fetching weather: " + ex.getMessage());
-                    return CompletableFuture.completedFuture(loadCachedWeather());
+                    return CompletableFuture.completedFuture(loadCachedWeather(cityName));
                 }
             })
             .exceptionally(ex -> {
                 System.err.println("Error fetching weather: " + ex.getMessage());
-                return loadCachedWeather();
+                return loadCachedWeather(cityName);
             });
     }
 
@@ -96,7 +96,7 @@ public class WeatherService {
             }
             return enriched;
         } catch (Exception ex) {
-            Weather cached = loadCachedWeather();
+            Weather cached = loadCachedWeather(cityName);
             if (cached != null) {
                 return cached;
             }
@@ -296,7 +296,7 @@ public class WeatherService {
         return -1;
     }
 
-    private Weather loadCachedWeather() {
-        return cacheService.loadWeather();
+    private Weather loadCachedWeather(String cityName) {
+        return cacheService.loadWeather(cityName);
     }
 }
