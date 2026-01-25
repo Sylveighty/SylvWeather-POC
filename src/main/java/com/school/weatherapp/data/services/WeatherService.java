@@ -121,6 +121,12 @@ public class WeatherService {
         weather.setCityName(json.get("name").getAsString());
         JsonObject sys = json.getAsJsonObject("sys");
         weather.setCountry(sys.get("country").getAsString());
+        if (sys.has("sunrise")) {
+            weather.setSunriseTimestamp(sys.get("sunrise").getAsLong());
+        }
+        if (sys.has("sunset")) {
+            weather.setSunsetTimestamp(sys.get("sunset").getAsLong());
+        }
     }
 
     private void parseMainWeatherData(JsonObject json, Weather weather, String units) {
@@ -154,6 +160,12 @@ public class WeatherService {
         if (json.has("clouds")) {
             JsonObject clouds = json.getAsJsonObject("clouds");
             weather.setCloudiness(clouds.get("all").getAsInt());
+        }
+        if (json.has("visibility")) {
+            weather.setVisibility(json.get("visibility").getAsInt());
+        }
+        if (json.has("uvi")) {
+            weather.setUvIndex(json.get("uvi").getAsInt());
         }
         weather.setTimestamp(json.get("dt").getAsLong());
     }

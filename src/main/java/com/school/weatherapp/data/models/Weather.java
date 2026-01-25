@@ -43,7 +43,10 @@ public class Weather {
     private int windDirection;       // Degrees.
     
     // ==================== Additional Data ====================
-    private int uvIndex;
+    private int uvIndex = -1;
+    private int visibility = -1;     // meters.
+    private long sunriseTimestamp;   // Unix timestamp.
+    private long sunsetTimestamp;    // Unix timestamp.
     private double precipitation;    // mm.
     private long timestamp;          // Unix timestamp.
     
@@ -181,9 +184,33 @@ public class Weather {
     public int getUvIndex() {
         return uvIndex;
     }
-    
+
     public void setUvIndex(int uvIndex) {
         this.uvIndex = uvIndex;
+    }
+
+    public int getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(int visibility) {
+        this.visibility = visibility;
+    }
+
+    public long getSunriseTimestamp() {
+        return sunriseTimestamp;
+    }
+
+    public void setSunriseTimestamp(long sunriseTimestamp) {
+        this.sunriseTimestamp = sunriseTimestamp;
+    }
+
+    public long getSunsetTimestamp() {
+        return sunsetTimestamp;
+    }
+
+    public void setSunsetTimestamp(long sunsetTimestamp) {
+        this.sunsetTimestamp = sunsetTimestamp;
     }
     
     public double getPrecipitation() {
