@@ -95,7 +95,7 @@ public class MainApp extends Application {
         VBox mainLayout = createMainLayout();
 
         scrollPane = new ScrollPane(mainLayout);
-        scrollPane.setFitToWidth(false);
+        scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(false);
 
         // Keep scroll pane visually clean; colors come from CSS.
@@ -223,20 +223,17 @@ public class MainApp extends Application {
 
         topSection.getChildren().addAll(currentWeatherPanel, favoritesPanel);
 
-        VBox contentColumn = new VBox(12);
-        contentColumn.setAlignment(Pos.TOP_CENTER);
-        contentColumn.setPrefWidth(1000);
-        contentColumn.setMaxWidth(1000);
-        contentColumn.getChildren().addAll(
+        highlightsPanel.setMaxWidth(Double.MAX_VALUE);
+        alertPanel.setMaxWidth(Double.MAX_VALUE);
+        hourlyForecastPanel.setMaxWidth(Double.MAX_VALUE);
+        dailyForecastPanel.setMaxWidth(Double.MAX_VALUE);
+
+        mainLayout.getChildren().addAll(
+            topSection,
             highlightsPanel,
             alertPanel,
             hourlyForecastPanel,
             dailyForecastPanel
-        );
-
-        mainLayout.getChildren().addAll(
-            topSection,
-            contentColumn
         );
 
         return mainLayout;
