@@ -8,7 +8,7 @@ import com.school.weatherapp.features.UserPreferencesService;
 import com.school.weatherapp.util.DateTimeUtil;
 import com.school.weatherapp.util.TemperatureUtil;
 import com.school.weatherapp.util.ThemeUtil;
-import com.school.weatherapp.util.WeatherEmojiUtil;
+import com.school.weatherapp.util.WeatherEmojiResolver;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -197,7 +197,7 @@ public class CurrentWeatherPanel extends VBox {
         weatherIcon = new Text("☀");
         weatherIcon.getStyleClass().add("weather-icon");
 
-        temperatureLabel = new Label("--°");
+        temperatureLabel = new Label("--\u00B0");
         temperatureLabel.getStyleClass().add("temperature-large");
 
         conditionLabel = new Label("--");
@@ -232,7 +232,7 @@ public class CurrentWeatherPanel extends VBox {
 
         // Feels like.
         Label feelsLikeTitle = createDetailTitle("Feels Like");
-        feelsLikeLabel = createDetailValue("--°");
+        feelsLikeLabel = createDetailValue("--\u00B0");
         detailsGrid.add(feelsLikeTitle, 0, 0);
         detailsGrid.add(feelsLikeLabel, 0, 1);
 
@@ -389,11 +389,11 @@ public class CurrentWeatherPanel extends VBox {
         temperatureLabel.setText(String.format("%.0f%s", weather.getTemperature(), tempUnit));
 
         // Condition and description.
-        conditionLabel.setText(weather.getCondition());
+        conditionLabel.setText(resolveConditionText(weather));
         descriptionLabel.setText(capitalize(weather.getDescription()));
 
         // Icon.
-        weatherIcon.setText(WeatherEmojiUtil.emojiForCondition(weather.getCondition()));
+        weatherIcon.setText(WeatherEmojiResolver.resolveEmoji(weather.getIconCode(), weather.getCondition()));
 
         // Details.
         feelsLikeLabel.setText(String.format("%.0f%s", weather.getFeelsLike(), tempUnit));
@@ -485,7 +485,7 @@ public class CurrentWeatherPanel extends VBox {
         if (unit == null || unit.isBlank()) {
             unit = preferencesService.getTemperatureUnit();
         }
-        return "imperial".equalsIgnoreCase(unit) ? "°F" : "°C";
+        return "imperial".equalsIgnoreCase(unit) ? "\u00B0F" : "\u00B0C";
     }
 
     private String resolveWindUnit(Weather weather) {
@@ -510,6 +510,16 @@ public class CurrentWeatherPanel extends VBox {
             }
         }
         return result.toString().trim();
+    }
+
+    private String resolveConditionText(Weather weather) {
+        if (weather.getCondition() != null && !weather.getCondition().isBlank()) {
+            return weather.getCondition();
+        }
+        if (weather.getDescription() != null && !weather.getDescription().isBlank()) {
+            return capitalize(weather.getDescription());
+        }
+        return "--";
     }
 
     // -------------------- Public Methods --------------------
@@ -549,7 +559,7 @@ public class CurrentWeatherPanel extends VBox {
             tempValue = weather.getTemperature();
         }
 
-        String tempUnit = isImperial ? "°F" : "°C";
+        String tempUnit = isImperial ? "\u00B0F" : "\u00B0C";
         temperatureLabel.setText(String.format("%.0f%s", tempValue, tempUnit));
 
         // Feels like.

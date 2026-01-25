@@ -111,7 +111,7 @@
 
 .weather-icon {
     -fx-font-size: 70px;
-    -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+    -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
 }
 
 /* Temperature coloring */

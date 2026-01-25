@@ -4,7 +4,7 @@ import com.school.weatherapp.data.models.Forecast;
 import com.school.weatherapp.data.services.ForecastService;
 import com.school.weatherapp.util.TemperatureUtil;
 import com.school.weatherapp.util.ThemeUtil;
-import com.school.weatherapp.util.WeatherEmojiUtil;
+import com.school.weatherapp.util.WeatherEmojiResolver;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -166,7 +166,7 @@ public class HourlyForecastPanel extends VBox {
         Label timeLabel = new Label(forecast.getTimeLabel());
         timeLabel.getStyleClass().add("label-secondary");
 
-        Text icon = new Text(WeatherEmojiUtil.emojiForCondition(forecast.getCondition()));
+        Text icon = new Text(WeatherEmojiResolver.resolveEmoji(forecast.getIconCode(), forecast.getCondition()));
         icon.getStyleClass().add("weather-icon");
         icon.setStyle("-fx-font-size: 32px;"); // Keep size local; the emoji font family is in CSS.
 
@@ -186,11 +186,14 @@ public class HourlyForecastPanel extends VBox {
             tempValue = forecast.getTemperature();
         }
 
-        String unit = isImperial ? "°F" : "°C";
+        String unit = isImperial ? "\u00B0F" : "\u00B0C";
         Label tempLabel = new Label(String.format("%.0f%s", tempValue, unit));
         tempLabel.getStyleClass().add("label-primary");
 
-        card.getChildren().addAll(timeLabel, icon, tempLabel);
+        Label conditionLabel = new Label(resolveConditionText(forecast));
+        conditionLabel.getStyleClass().add("label-subtle");
+
+        card.getChildren().addAll(timeLabel, icon, conditionLabel, tempLabel);
 
         Label precip = new Label(formatPrecipSummary(forecast, isImperial));
         precip.getStyleClass().add("label-subtle");
@@ -220,6 +223,16 @@ public class HourlyForecastPanel extends VBox {
         }
 
         return summary.toString();
+    }
+
+    private String resolveConditionText(Forecast forecast) {
+        if (forecast.getCondition() != null && !forecast.getCondition().isBlank()) {
+            return forecast.getCondition();
+        }
+        if (forecast.getDescription() != null && !forecast.getDescription().isBlank()) {
+            return forecast.getDescription();
+        }
+        return "--";
     }
 
     /**

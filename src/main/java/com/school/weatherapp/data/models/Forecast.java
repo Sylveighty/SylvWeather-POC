@@ -193,7 +193,7 @@ public class Forecast {
     
     @Override
     public String toString() {
-        return String.format("%s: %.1f°F - %s", 
+        return String.format("%s: %.1f\u00B0F - %s", 
             timeLabel, temperature, condition);
     }
 }
