@@ -206,12 +206,12 @@ public class MainApp extends Application {
     }
 
     private VBox createMainLayout() {
-        VBox mainLayout = new VBox(20);
-        mainLayout.setPadding(new Insets(20));
+        VBox mainLayout = new VBox(12);
+        mainLayout.setPadding(new Insets(12));
         mainLayout.setAlignment(Pos.TOP_CENTER);
 
         // Top section: current + favorites.
-        HBox topSection = new HBox(20);
+        HBox topSection = new HBox(12);
         topSection.setAlignment(Pos.TOP_CENTER);
         topSection.setMaxHeight(Double.MAX_VALUE);
         VBox.setVgrow(topSection, Priority.ALWAYS);

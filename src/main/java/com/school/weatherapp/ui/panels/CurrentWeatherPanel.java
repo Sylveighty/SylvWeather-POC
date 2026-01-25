@@ -87,8 +87,8 @@ public class CurrentWeatherPanel extends VBox {
         this.preferencesService = new UserPreferencesService();
 
         // Layout (no color/typography here; CSS handles that).
-        setPadding(new Insets(20));
-        setSpacing(15);
+        setPadding(new Insets(12));
+        setSpacing(10);
         setMaxWidth(450);
 
         // Base style class for panel container.
@@ -134,15 +134,15 @@ public class CurrentWeatherPanel extends VBox {
     // -------------------- UI Building Methods --------------------
 
     private void buildSearchBar() {
-        VBox searchArea = new VBox(6);
+        VBox searchArea = new VBox(4);
         searchArea.getStyleClass().add("search-area");
 
-        HBox searchBar = new HBox(10);
+        HBox searchBar = new HBox(8);
         searchBar.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
         searchField.setPromptText("Enter city or City, Country (e.g., Paris, FR)");
-        searchField.setPrefWidth(220);
+        searchField.setPrefWidth(200);
         searchField.setAccessibleText("City search input");
         // JavaFX TextField already has "text-field"; keep it and optionally add more if desired.
 
@@ -179,8 +179,8 @@ public class CurrentWeatherPanel extends VBox {
         recentLabel.getStyleClass().add("label-subtle");
 
         recentSearchesFlow = new FlowPane();
-        recentSearchesFlow.setHgap(8);
-        recentSearchesFlow.setVgap(8);
+        recentSearchesFlow.setHgap(6);
+        recentSearchesFlow.setVgap(6);
         recentSearchesFlow.getStyleClass().add("recent-searches");
         refreshRecentSearches();
 
@@ -190,9 +190,9 @@ public class CurrentWeatherPanel extends VBox {
     }
 
     private void buildMainDisplay() {
-        VBox mainDisplay = new VBox(10);
+        VBox mainDisplay = new VBox(6);
         mainDisplay.setAlignment(Pos.CENTER);
-        mainDisplay.setPadding(new Insets(20, 0, 20, 0));
+        mainDisplay.setPadding(new Insets(10, 0, 10, 0));
 
         cityLabel = new Label("Loading...");
         cityLabel.getStyleClass().add("city-label");
@@ -210,7 +210,7 @@ public class CurrentWeatherPanel extends VBox {
         descriptionLabel.getStyleClass().add("description-label");
 
         loadingIndicator = new ProgressIndicator();
-        loadingIndicator.setMaxSize(40, 40);
+        loadingIndicator.setMaxSize(28, 28);
         loadingIndicator.setVisible(false);
 
         mainDisplay.getChildren().addAll(
@@ -227,10 +227,10 @@ public class CurrentWeatherPanel extends VBox {
 
     private void buildDetailsGrid() {
         detailsGrid = new GridPane();
-        detailsGrid.setHgap(20);
-        detailsGrid.setVgap(15);
+        detailsGrid.setHgap(14);
+        detailsGrid.setVgap(10);
         detailsGrid.setAlignment(Pos.CENTER);
-        detailsGrid.setPadding(new Insets(10));
+        detailsGrid.setPadding(new Insets(8));
         detailsGrid.getStyleClass().add("panel-content");
 
         // Feels like.
@@ -284,7 +284,7 @@ public class CurrentWeatherPanel extends VBox {
         lastUpdatedLabel.setAlignment(Pos.CENTER);
         lastUpdatedLabel.setMaxWidth(Double.MAX_VALUE);
 
-        VBox footerBox = new VBox(6, cachedDataLabel, lastUpdatedLabel);
+        VBox footerBox = new VBox(4, cachedDataLabel, lastUpdatedLabel);
         footerBox.setAlignment(Pos.CENTER);
         footerBox.setFillWidth(true);
 

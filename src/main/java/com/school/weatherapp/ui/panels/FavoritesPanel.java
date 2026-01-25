@@ -44,11 +44,11 @@ public class FavoritesPanel extends VBox {
     public FavoritesPanel(FavoritesService favoritesService) {
         this.favoritesService = favoritesService;
 
-        setPadding(new Insets(20));
-        setSpacing(15);
-        setMinWidth(350);
-        setPrefWidth(450);
-        setMaxWidth(550);
+        setPadding(new Insets(12));
+        setSpacing(10);
+        setMinWidth(300);
+        setPrefWidth(420);
+        setMaxWidth(520);
         setMinHeight(0);
         setPrefHeight(USE_COMPUTED_SIZE);
         setMaxHeight(Double.MAX_VALUE);
@@ -116,8 +116,8 @@ public class FavoritesPanel extends VBox {
     }
 
     private void buildFavoritesList() {
-        favoritesList = new VBox(10);
-        favoritesList.setPadding(new Insets(10));
+        favoritesList = new VBox(8);
+        favoritesList.setPadding(new Insets(8));
         favoritesList.getStyleClass().add("panel-content");
 
         scrollPane = new ScrollPane(favoritesList);
@@ -131,9 +131,9 @@ public class FavoritesPanel extends VBox {
     // -------------------- Rendering --------------------
 
     private void showEmptyState() {
-        VBox emptyState = new VBox(10);
+        VBox emptyState = new VBox(6);
         emptyState.setAlignment(Pos.CENTER);
-        emptyState.setPadding(new Insets(20));
+        emptyState.setPadding(new Insets(10));
 
         Label emptyLabel = new Label("No favorite cities yet");
         emptyLabel.getStyleClass().add("label-secondary");
@@ -155,7 +155,7 @@ public class FavoritesPanel extends VBox {
     }
 
     private HBox createCityItem(String cityName) {
-        HBox itemBox = new HBox(10);
+        HBox itemBox = new HBox(8);
         itemBox.setAlignment(Pos.CENTER_LEFT);
 
         // Reuse a generic card style from CSS.
@@ -174,8 +174,8 @@ public class FavoritesPanel extends VBox {
         Button removeButton = new Button("✕");
         // Make it clearly destructive using existing CSS class.
         removeButton.getStyleClass().add("favorite-remove");
-        removeButton.setMinWidth(36);
-        removeButton.setPrefWidth(36);
+        removeButton.setMinWidth(32);
+        removeButton.setPrefWidth(32);
 
         removeButton.setOnAction(e -> handleCityRemove(cityName));
 
