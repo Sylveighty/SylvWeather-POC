@@ -210,8 +210,8 @@ public class AlertPanel extends VBox {
         card.getStyleClass().add("forecast-card");
 
         // Severity styling via CSS classes.
-        String severity = alert.getSeverity() != null ? alert.getSeverity().toLowerCase() : "low";
-        switch (severity) {
+        String severityClass = alert.getSeverity() != null ? alert.getSeverity().toLowerCase() : "low";
+        switch (severityClass) {
             case "high" -> card.getStyleClass().add("alert-high");
             case "medium" -> card.getStyleClass().add("alert-medium");
             default -> card.getStyleClass().add("alert-low");
