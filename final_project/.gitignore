@@ -1,0 +1,11 @@
+# Gradle / build outputs
+.gradle
+build/
+bin/
+
+# IDE
+.vscode/
+.idea/
+
+# App data
+favorites.txt
