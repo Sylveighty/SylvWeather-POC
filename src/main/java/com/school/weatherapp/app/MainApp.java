@@ -2,6 +2,7 @@ package com.school.weatherapp.app;
 
 import com.school.weatherapp.config.AppConfig;
 import com.school.weatherapp.features.FavoritesService;
+import com.school.weatherapp.features.UserPreferencesService;
 import com.school.weatherapp.ui.panels.AlertPanel;
 import com.school.weatherapp.ui.panels.CurrentWeatherPanel;
 import com.school.weatherapp.ui.panels.DailyForecastPanel;
@@ -14,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
@@ -48,6 +50,8 @@ public class MainApp extends Application {
     private ScrollPane scrollPane;
     private Scene scene;
     private Label toastLabel;
+    private ComboBox<String> savedLocationsCombo;
+    private Button savedLocationButton;
 
     // Panels.
     private CurrentWeatherPanel currentWeatherPanel;
@@ -59,6 +63,8 @@ public class MainApp extends Application {
 
     // Global state.
     private boolean darkThemeEnabled = false;
+    private FavoritesService favoritesService;
+    private UserPreferencesService preferencesService;
 
     // Your project already uses AppConfig.TEMPERATURE_UNIT as the default preference.
     // The toggle overrides display for the session via refreshTemperatures(...) calls.
@@ -66,9 +72,16 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        preferencesService = new UserPreferencesService();
+        initializePreferences();
         buildUi(primaryStage);
         wireInteractions();
         loadInitialData();
+    }
+
+    private void initializePreferences() {
+        darkThemeEnabled = preferencesService.isDarkThemeEnabled();
+        isImperial = "imperial".equalsIgnoreCase(preferencesService.getTemperatureUnit());
     }
 
     private void buildUi(Stage stage) {
@@ -136,10 +149,12 @@ public class MainApp extends Application {
         HBox.setHgrow(toastLabel, Priority.ALWAYS);
         toastLabel.setMaxWidth(Double.MAX_VALUE);
 
+        HBox savedLocationsBox = createSavedLocationsControls();
+
         Button unitToggle = createUnitToggleButton();
         Button themeToggle = createThemeToggleButton();
 
-        HBox actionButtons = new HBox(10, unitToggle, themeToggle);
+        HBox actionButtons = new HBox(10, savedLocationsBox, unitToggle, themeToggle);
         actionButtons.setAlignment(Pos.CENTER_RIGHT);
 
         topBar.getChildren().addAll(title, toastLabel, actionButtons);
@@ -156,6 +171,7 @@ public class MainApp extends Application {
         unitToggle.setOnAction(e -> {
             isImperial = !isImperial;
             unitToggle.setText(isImperial ? "°F" : "°C");
+            preferencesService.setTemperatureUnit(isImperial ? "imperial" : "metric");
 
             showUnitChangeMessage(isImperial ? "Fahrenheit" : "Celsius");
             refreshAllTemperatures();
@@ -174,6 +190,7 @@ public class MainApp extends Application {
         themeToggle.setOnAction(e -> {
             darkThemeEnabled = !darkThemeEnabled;
             applyTheme(darkThemeEnabled);
+            preferencesService.setDarkThemeEnabled(darkThemeEnabled);
 
             themeToggle.setText(darkThemeEnabled ? "Light" : "Dark");
             // Change button color for visual feedback.
@@ -183,8 +200,28 @@ public class MainApp extends Application {
         return themeToggle;
     }
 
+    private HBox createSavedLocationsControls() {
+        Label savedLabel = new Label("Saved");
+        savedLabel.getStyleClass().add("label-subtle");
+
+        savedLocationsCombo = new ComboBox<>();
+        savedLocationsCombo.setPromptText("Saved locations");
+        savedLocationsCombo.getStyleClass().add("saved-locations-combo");
+        savedLocationsCombo.setPrefWidth(180);
+        savedLocationsCombo.setOnAction(event -> handleSavedLocationSelection());
+
+        savedLocationButton = new Button("Go");
+        savedLocationButton.getStyleClass().add("saved-location-button");
+        savedLocationButton.setOnAction(event -> handleSavedLocationSelection());
+
+        HBox container = new HBox(8, savedLabel, savedLocationsCombo, savedLocationButton);
+        container.getStyleClass().add("saved-locations-box");
+        container.setAlignment(Pos.CENTER_RIGHT);
+        return container;
+    }
+
     private void initializePanels() {
-        FavoritesService favoritesService = new FavoritesService();
+        favoritesService = new FavoritesService();
         currentWeatherPanel = new CurrentWeatherPanel(favoritesService);
         favoritesPanel = new FavoritesPanel(favoritesService);
         highlightsPanel = new HighlightsPanel();
@@ -226,14 +263,19 @@ public class MainApp extends Application {
 
     private void wireInteractions() {
         currentWeatherPanel.setOnCityChange(this::loadForecasts);
-        currentWeatherPanel.setOnFavoritesChange(() -> favoritesPanel.refreshFavorites());
+        currentWeatherPanel.setOnFavoritesChange(() -> {
+            favoritesPanel.refreshFavorites();
+            refreshSavedLocations();
+        });
 
         favoritesPanel.setOnCitySelect(cityName -> currentWeatherPanel.loadCityWeather(cityName));
+        favoritesPanel.setOnFavoritesChange(this::refreshSavedLocations);
     }
 
     private void loadInitialData() {
         loadForecasts(AppConfig.DEFAULT_CITY);
         refreshAllTemperatures();
+        refreshSavedLocations();
     }
 
     /**
@@ -313,6 +355,29 @@ public class MainApp extends Application {
         PauseTransition pause = new PauseTransition(Duration.seconds(3));
         pause.setOnFinished(event -> toastLabel.setVisible(false));
         pause.playFromStart();
+    }
+
+    private void refreshSavedLocations() {
+        if (savedLocationsCombo == null || favoritesService == null) {
+            return;
+        }
+        var favorites = favoritesService.getFavorites();
+        savedLocationsCombo.getItems().setAll(favorites);
+        boolean hasFavorites = !favorites.isEmpty();
+        savedLocationsCombo.setDisable(!hasFavorites);
+        savedLocationButton.setDisable(!hasFavorites);
+        savedLocationsCombo.getSelectionModel().clearSelection();
+    }
+
+    private void handleSavedLocationSelection() {
+        if (savedLocationsCombo == null) {
+            return;
+        }
+        String city = savedLocationsCombo.getValue();
+        if (city == null || city.isBlank()) {
+            return;
+        }
+        currentWeatherPanel.loadCityWeather(city);
     }
 
     public static void main(String[] args) {

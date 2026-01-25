@@ -3,7 +3,9 @@ package com.school.weatherapp.data.services;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.school.weatherapp.config.AppConfig;
+import com.school.weatherapp.data.cache.CacheService;
 import com.school.weatherapp.data.models.Weather;
+import com.school.weatherapp.features.UserPreferencesService;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -24,9 +26,13 @@ import java.util.concurrent.CompletableFuture;
 public class WeatherService {
 
     private final HttpClient httpClient;
+    private final CacheService cacheService;
+    private final UserPreferencesService preferencesService;
 
     public WeatherService() {
         this.httpClient = HttpClient.newHttpClient();
+        this.cacheService = new CacheService();
+        this.preferencesService = new UserPreferencesService();
     }
 
     /**
@@ -47,15 +53,22 @@ public class WeatherService {
                     validateApiResponse(response);
                     String units = resolveUnits();
                     Weather weather = parseWeatherResponse(response.body(), units);
-                    return enrichWeatherWithUvIndexAsync(weather, units);
+                    return enrichWeatherWithUvIndexAsync(weather, units)
+                        .thenApply(enriched -> {
+                            if (enriched != null) {
+                                enriched.setCached(false);
+                                cacheService.saveWeather(cityName, enriched);
+                            }
+                            return enriched;
+                        });
                 } catch (Exception ex) {
                     System.err.println("Error fetching weather: " + ex.getMessage());
-                    return CompletableFuture.completedFuture(null);
+                    return CompletableFuture.completedFuture(loadCachedWeather());
                 }
             })
             .exceptionally(ex -> {
                 System.err.println("Error fetching weather: " + ex.getMessage());
-                return null;
+                return loadCachedWeather();
             });
     }
 
@@ -63,19 +76,32 @@ public class WeatherService {
      * Synchronous variant (kept for completeness / testing).
      */
     public Weather getCurrentWeather(String cityName) throws Exception {
-        String url = buildWeatherApiUrl(cityName);
+        try {
+            String url = buildWeatherApiUrl(cityName);
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .GET()
-            .build();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        validateApiResponse(response);
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            validateApiResponse(response);
 
-        String units = resolveUnits();
-        Weather weather = parseWeatherResponse(response.body(), units);
-        return enrichWeatherWithUvIndex(weather, units);
+            String units = resolveUnits();
+            Weather weather = parseWeatherResponse(response.body(), units);
+            Weather enriched = enrichWeatherWithUvIndex(weather, units);
+            if (enriched != null) {
+                enriched.setCached(false);
+                cacheService.saveWeather(cityName, enriched);
+            }
+            return enriched;
+        } catch (Exception ex) {
+            Weather cached = loadCachedWeather();
+            if (cached != null) {
+                return cached;
+            }
+            throw ex;
+        }
     }
 
     public boolean isApiKeyConfigured() {
@@ -85,7 +111,7 @@ public class WeatherService {
     }
 
     private String resolveUnits() {
-        return "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "imperial" : "metric";
+        return "imperial".equalsIgnoreCase(preferencesService.getTemperatureUnit()) ? "imperial" : "metric";
     }
 
     private String buildWeatherApiUrl(String cityName) {
@@ -268,5 +294,9 @@ public class WeatherService {
             }
         }
         return -1;
+    }
+
+    private Weather loadCachedWeather() {
+        return cacheService.loadWeather();
     }
 }

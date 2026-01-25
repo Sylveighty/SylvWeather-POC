@@ -1,8 +1,8 @@
 package com.school.weatherapp.ui.panels;
 
-import com.school.weatherapp.config.AppConfig;
 import com.school.weatherapp.data.models.Weather;
 import com.school.weatherapp.data.services.WeatherService;
+import com.school.weatherapp.features.UserPreferencesService;
 import com.school.weatherapp.util.DateTimeUtil;
 import com.school.weatherapp.util.TemperatureUtil;
 import com.school.weatherapp.util.ThemeUtil;
@@ -35,10 +35,13 @@ public class HighlightsPanel extends VBox {
 
     private ProgressIndicator loadingIndicator;
     private Weather currentWeather;
-    private boolean isImperial = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT);
+    private boolean isImperial;
+    private Label cacheNoticeLabel;
 
     public HighlightsPanel() {
         this.weatherService = new WeatherService();
+        UserPreferencesService preferencesService = new UserPreferencesService();
+        this.isImperial = "imperial".equalsIgnoreCase(preferencesService.getTemperatureUnit());
 
         setPadding(new Insets(20));
         setSpacing(15);
@@ -61,7 +64,13 @@ public class HighlightsPanel extends VBox {
     private void buildTitle() {
         Label title = new Label("Today's Highlights");
         title.getStyleClass().add("section-title");
-        getChildren().add(title);
+
+        cacheNoticeLabel = new Label("Offline • Showing cached data");
+        cacheNoticeLabel.getStyleClass().add("cache-banner");
+        cacheNoticeLabel.setVisible(false);
+
+        VBox header = new VBox(4, title, cacheNoticeLabel);
+        getChildren().add(header);
     }
 
     private void buildHighlightsGrid() {
@@ -131,8 +140,10 @@ public class HighlightsPanel extends VBox {
                 if (weather != null) {
                     currentWeather = weather;
                     updateDisplayWithUnit(weather, isImperial);
+                    updateCacheNotice(weather);
                 } else {
                     setValuePlaceholders("--");
+                    updateCacheNotice(null);
                 }
             }));
     }
@@ -201,10 +212,18 @@ public class HighlightsPanel extends VBox {
         }
     }
 
+    private void updateCacheNotice(Weather weather) {
+        if (cacheNoticeLabel == null) {
+            return;
+        }
+        cacheNoticeLabel.setVisible(weather != null && weather.isCached());
+    }
+
     private void showLoadingState(boolean isLoading) {
         loadingIndicator.setVisible(isLoading);
         if (isLoading) {
             setValuePlaceholders("Loading...");
+            updateCacheNotice(null);
         }
     }
 

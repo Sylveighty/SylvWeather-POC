@@ -4,7 +4,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.school.weatherapp.config.AppConfig;
+import com.school.weatherapp.data.cache.CacheService;
 import com.school.weatherapp.data.models.Forecast;
+import com.school.weatherapp.features.UserPreferencesService;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -38,9 +40,13 @@ import java.util.concurrent.CompletableFuture;
 public class ForecastService {
 
     private final HttpClient httpClient;
+    private final CacheService cacheService;
+    private final UserPreferencesService preferencesService;
 
     public ForecastService() {
         this.httpClient = HttpClient.newHttpClient();
+        this.cacheService = new CacheService();
+        this.preferencesService = new UserPreferencesService();
     }
 
     public CompletableFuture<List<Forecast>> getForecastAsync(String cityName) {
@@ -49,19 +55,30 @@ public class ForecastService {
                 return getForecast(cityName);
             } catch (Exception e) {
                 System.err.println("Error fetching forecast: " + e.getMessage());
-                return new ArrayList<>();
+                return cacheService.loadForecast();
             }
         });
     }
 
     public List<Forecast> getForecast(String cityName) throws Exception {
-        String apiUrl = buildForecastApiUrl(cityName);
-        HttpResponse<String> response = sendHttpRequest(apiUrl);
+        try {
+            String apiUrl = buildForecastApiUrl(cityName);
+            HttpResponse<String> response = sendHttpRequest(apiUrl);
 
-        validateApiResponse(response);
+            validateApiResponse(response);
 
-        String units = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "imperial" : "metric";
-        return parseForecastResponse(response.body(), units);
+            String units = resolveUnits();
+            List<Forecast> forecasts = parseForecastResponse(response.body(), units);
+            markCached(forecasts, false);
+            cacheService.saveForecast(cityName, forecasts);
+            return forecasts;
+        } catch (Exception ex) {
+            List<Forecast> cached = cacheService.loadForecast();
+            if (!cached.isEmpty()) {
+                return cached;
+            }
+            throw ex;
+        }
     }
 
     /**
@@ -83,11 +100,25 @@ public class ForecastService {
             try {
                 List<Forecast> daily = getDailyForecast(cityName);
                 if (!daily.isEmpty()) {
+                    markCached(daily, false);
+                    cacheService.saveDailyForecast(cityName, daily);
                     return daily;
                 }
-                return groupForecastsByDate(getForecast(cityName));
+                List<Forecast> grouped = groupForecastsByDate(getForecast(cityName));
+                if (!grouped.isEmpty()) {
+                    cacheService.saveDailyForecast(cityName, grouped);
+                }
+                return grouped;
             } catch (Exception e) {
                 System.err.println("Error fetching daily forecast: " + e.getMessage());
+                List<Forecast> cachedDaily = cacheService.loadDailyForecast();
+                if (!cachedDaily.isEmpty()) {
+                    return cachedDaily;
+                }
+                List<Forecast> cachedHourly = cacheService.loadForecast();
+                if (!cachedHourly.isEmpty()) {
+                    return groupForecastsByDate(cachedHourly);
+                }
                 return new ArrayList<>();
             }
         });
@@ -95,7 +126,7 @@ public class ForecastService {
 
     private String buildForecastApiUrl(String cityName) {
         String encodedCity = URLEncoder.encode(cityName, StandardCharsets.UTF_8);
-        String units = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "imperial" : "metric";
+        String units = resolveUnits();
 
         return String.format("%s/forecast?q=%s&units=%s&appid=%s",
             AppConfig.WEATHER_API_BASE_URL,
@@ -282,11 +313,14 @@ public class ForecastService {
         double totalSnow = dayForecasts.stream().mapToDouble(Forecast::getSnowAmount).sum();
         daily.setSnowAmount(totalSnow);
 
+        boolean cached = dayForecasts.stream().anyMatch(Forecast::isCached);
+        daily.setCached(cached);
+
         return daily;
     }
 
     private List<Forecast> getDailyForecast(String cityName) throws Exception {
-        String units = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "imperial" : "metric";
+        String units = resolveUnits();
         double[] coords = fetchCoordinates(cityName);
         if (coords == null) {
             return new ArrayList<>();
@@ -301,7 +335,7 @@ public class ForecastService {
 
     private double[] fetchCoordinates(String cityName) throws Exception {
         String encodedCity = URLEncoder.encode(cityName, StandardCharsets.UTF_8);
-        String units = "imperial".equalsIgnoreCase(AppConfig.TEMPERATURE_UNIT) ? "imperial" : "metric";
+        String units = resolveUnits();
 
         String url = String.format("%s/weather?q=%s&units=%s&appid=%s",
             AppConfig.WEATHER_API_BASE_URL,
@@ -408,5 +442,16 @@ public class ForecastService {
         }
 
         return forecasts;
+    }
+
+    private String resolveUnits() {
+        return "imperial".equalsIgnoreCase(preferencesService.getTemperatureUnit()) ? "imperial" : "metric";
+    }
+
+    private void markCached(List<Forecast> forecasts, boolean cached) {
+        if (forecasts == null) {
+            return;
+        }
+        forecasts.forEach(forecast -> forecast.setCached(cached));
     }
 }
