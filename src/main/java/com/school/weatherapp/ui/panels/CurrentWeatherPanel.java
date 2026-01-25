@@ -141,7 +141,7 @@ public class CurrentWeatherPanel extends VBox {
         searchBar.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
-        searchField.setPromptText("Enter city name...");
+        searchField.setPromptText("Enter city or City, Country (e.g., Paris, FR)");
         searchField.setPrefWidth(220);
         searchField.setAccessibleText("City search input");
         // JavaFX TextField already has "text-field"; keep it and optionally add more if desired.
@@ -161,13 +161,16 @@ public class CurrentWeatherPanel extends VBox {
 
         searchBar.getChildren().addAll(searchField, searchButton, favoriteButton);
 
+        Label helperLabel = new Label("Tip: Use City, Country Code for precision (e.g., Paris, FR).");
+        helperLabel.getStyleClass().add("label-subtle");
+
         errorLabel = new Label();
         errorLabel.getStyleClass().add("input-error");
         errorLabel.setVisible(false);
 
         VBox recentSearchesBox = buildRecentSearches();
 
-        searchArea.getChildren().addAll(searchBar, errorLabel, recentSearchesBox);
+        searchArea.getChildren().addAll(searchBar, helperLabel, errorLabel, recentSearchesBox);
         getChildren().add(searchArea);
     }
 
