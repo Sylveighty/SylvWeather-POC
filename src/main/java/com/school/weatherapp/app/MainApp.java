@@ -25,7 +25,7 @@ import javafx.util.Duration;
 import javafx.stage.Stage;
 
 /**
- * MainApp - JavaFX entry point for SylvWeather-POC.
+ * MainApp - JavaFX entry point for Weathering with You.
  *
  * Responsibilities:
  * - Create the primary Stage/Scene
@@ -39,7 +39,7 @@ public class MainApp extends Application {
 
     private static final int WINDOW_WIDTH = 1400;
     private static final int WINDOW_HEIGHT = 900;
-    private static final String APP_TITLE = "Weather Dashboard (POC)";
+    private static final String APP_TITLE = "Weathering with You";
 
     // Stylesheet resources.
     private static final String THEME_LIGHT = "/theme.css";
