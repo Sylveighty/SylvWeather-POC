@@ -99,6 +99,7 @@ public class CacheService {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class WeatherCacheEntry {
         private final String cityName;
         private final long cachedAt;
@@ -111,6 +112,7 @@ public class CacheService {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class ForecastCacheEntry {
         private final String cityName;
         private final long cachedAt;
