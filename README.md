@@ -7,5 +7,7 @@ Martin Lawrence Bola
 Euan Vera Cruz
 
 Contains the following files
+
 -CLI Mockup of our Weather program flow
+
 -Actual GUI Presentation version Weather Dashboard application
