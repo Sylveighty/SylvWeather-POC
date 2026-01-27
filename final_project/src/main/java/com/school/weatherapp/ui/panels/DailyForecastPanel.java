@@ -35,7 +35,6 @@ public class DailyForecastPanel extends VBox {
     private final ForecastService forecastService;
 
     private Label titleLabel;
-    private Label cacheNoticeLabel;
     private VBox dailyCardsContainer;
     private VBox containerBox;
 
@@ -72,11 +71,7 @@ public class DailyForecastPanel extends VBox {
         titleLabel = new Label("7–10 Day Forecast");
         titleLabel.getStyleClass().add("section-title");
 
-        cacheNoticeLabel = new Label("Offline • Showing cached forecast");
-        cacheNoticeLabel.getStyleClass().add("cache-banner");
-        cacheNoticeLabel.setVisible(false);
-
-        VBox header = new VBox(3, titleLabel, cacheNoticeLabel);
+        VBox header = new VBox(3, titleLabel);
         getChildren().add(header);
     }
 
@@ -108,7 +103,6 @@ public class DailyForecastPanel extends VBox {
                     showError();
                 } else {
                     currentDailyForecasts = forecasts;
-                    updateCacheNotice(forecasts);
                     refreshDailyCards(false); // Default; MainApp unit toggle will call refreshTemperatures(...).
                 }
             }));
@@ -119,7 +113,6 @@ public class DailyForecastPanel extends VBox {
     private void showLoading() {
         Platform.runLater(() -> {
             dailyCardsContainer.getChildren().clear();
-            updateCacheNotice(null);
 
             VBox loadingBox = new VBox(6);
             loadingBox.setAlignment(Pos.CENTER);
@@ -140,7 +133,6 @@ public class DailyForecastPanel extends VBox {
         error.getStyleClass().add("label-subtle");
 
         dailyCardsContainer.getChildren().add(error);
-        updateCacheNotice(null);
     }
 
     private void refreshDailyCards(boolean isImperial) {
@@ -245,13 +237,5 @@ public class DailyForecastPanel extends VBox {
      */
     public void refreshTemperatures(boolean isImperial) {
         refreshDailyCards(isImperial);
-    }
-
-    private void updateCacheNotice(List<Forecast> forecasts) {
-        if (cacheNoticeLabel == null) {
-            return;
-        }
-        boolean cached = forecasts != null && forecasts.stream().anyMatch(Forecast::isCached);
-        cacheNoticeLabel.setVisible(cached);
     }
 }

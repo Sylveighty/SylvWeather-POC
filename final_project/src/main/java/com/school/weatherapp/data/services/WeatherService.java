@@ -3,7 +3,6 @@ package com.school.weatherapp.data.services;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.school.weatherapp.config.AppConfig;
-import com.school.weatherapp.data.cache.CacheService;
 import com.school.weatherapp.data.models.Weather;
 import com.school.weatherapp.features.UserPreferencesService;
 
@@ -26,12 +25,10 @@ import java.util.concurrent.CompletableFuture;
 public class WeatherService {
 
     private final HttpClient httpClient;
-    private final CacheService cacheService;
     private final UserPreferencesService preferencesService;
 
     public WeatherService() {
         this.httpClient = HttpClient.newHttpClient();
-        this.cacheService = new CacheService();
         this.preferencesService = new UserPreferencesService();
     }
 
@@ -54,21 +51,15 @@ public class WeatherService {
                     String units = resolveUnits();
                     Weather weather = parseWeatherResponse(response.body(), units);
                     return enrichWeatherWithUvIndexAsync(weather, units)
-                        .thenApply(enriched -> {
-                            if (enriched != null) {
-                                enriched.setCached(false);
-                                cacheService.saveWeather(cityName, enriched);
-                            }
-                            return enriched;
-                        });
+                        .thenApply(enriched -> enriched);
                 } catch (Exception ex) {
                     System.err.println("Error fetching weather: " + ex.getMessage());
-                    return CompletableFuture.completedFuture(loadCachedWeather(cityName));
+                    return CompletableFuture.completedFuture(null);
                 }
             })
             .exceptionally(ex -> {
                 System.err.println("Error fetching weather: " + ex.getMessage());
-                return loadCachedWeather(cityName);
+                return null;
             });
     }
 
@@ -90,16 +81,8 @@ public class WeatherService {
             String units = resolveUnits();
             Weather weather = parseWeatherResponse(response.body(), units);
             Weather enriched = enrichWeatherWithUvIndex(weather, units);
-            if (enriched != null) {
-                enriched.setCached(false);
-                cacheService.saveWeather(cityName, enriched);
-            }
             return enriched;
         } catch (Exception ex) {
-            Weather cached = loadCachedWeather(cityName);
-            if (cached != null) {
-                return cached;
-            }
             throw ex;
         }
     }
@@ -296,7 +279,4 @@ public class WeatherService {
         return -1;
     }
 
-    private Weather loadCachedWeather(String cityName) {
-        return cacheService.loadWeather(cityName);
-    }
 }

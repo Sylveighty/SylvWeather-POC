@@ -36,15 +36,6 @@ public final class AppConfig {
     /** Path to favorites file for storing favorite cities. */
     public static final String FAVORITES_FILE_PATH = "favorites.txt";
 
-    /** Path to cached weather data for offline fallback. */
-    public static final String WEATHER_CACHE_FILE_PATH = "cache-weather.json";
-
-    /** Path to cached hourly forecast data for offline fallback. */
-    public static final String FORECAST_CACHE_FILE_PATH = "cache-forecast.json";
-
-    /** Path to cached daily forecast data for offline fallback. */
-    public static final String DAILY_FORECAST_CACHE_FILE_PATH = "cache-daily-forecast.json";
-
     /** Maximum number of recent searches to retain. */
     public static final int RECENT_SEARCH_LIMIT = 6;
 
