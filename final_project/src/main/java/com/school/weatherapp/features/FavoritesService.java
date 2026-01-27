@@ -20,7 +20,7 @@ import java.util.*;
  */
 public class FavoritesService {
 
-    private Set<String> favoriteCities;
+    private Set<FavoriteCity> favoriteCities;
     private final String favoritesFilePath;
 
     /**
@@ -41,10 +41,8 @@ public class FavoritesService {
             if (file.exists()) {
                 List<String> lines = Files.readAllLines(Paths.get(favoritesFilePath));
                 for (String line : lines) {
-                    String city = line.trim();
-                    if (!city.isEmpty()) {
-                        favoriteCities.add(city);
-                    }
+                    FavoriteCity.fromStorageLine(line)
+                        .ifPresent(favoriteCities::add);
                 }
             }
         } catch (IOException e) {
@@ -57,8 +55,8 @@ public class FavoritesService {
      */
     private void saveFavorites() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(favoritesFilePath))) {
-            for (String city : favoriteCities) {
-                writer.write(city);
+            for (FavoriteCity city : favoriteCities) {
+                writer.write(city.toStorageString());
                 writer.newLine();
             }
         } catch (IOException e) {
@@ -73,16 +71,7 @@ public class FavoritesService {
      * @return true if added successfully, false if already exists
      */
     public boolean addFavorite(String cityName) {
-        if (cityName == null || cityName.trim().isEmpty()) {
-            return false;
-        }
-
-        String normalizedCity = cityName.trim();
-        if (favoriteCities.add(normalizedCity)) {
-            saveFavorites();
-            return true;
-        }
-        return false;
+        return addFavorite(cityName, "");
     }
 
     /**
@@ -92,16 +81,7 @@ public class FavoritesService {
      * @return true if removed successfully, false if not found
      */
     public boolean removeFavorite(String cityName) {
-        if (cityName == null || cityName.trim().isEmpty()) {
-            return false;
-        }
-
-        String normalizedCity = cityName.trim();
-        if (favoriteCities.remove(normalizedCity)) {
-            saveFavorites();
-            return true;
-        }
-        return false;
+        return removeFavorite(cityName, "");
     }
 
     /**
@@ -111,10 +91,61 @@ public class FavoritesService {
      * @return true if the city is a favorite
      */
     public boolean isFavorite(String cityName) {
+        return isFavorite(cityName, "");
+    }
+
+    /**
+     * Add a city with a country code to favorites
+     *
+     * @param cityName Name of the city to add
+     * @param countryCode Country code for the city
+     * @return true if added successfully, false if already exists
+     */
+    public boolean addFavorite(String cityName, String countryCode) {
         if (cityName == null || cityName.trim().isEmpty()) {
             return false;
         }
-        return favoriteCities.contains(cityName.trim());
+
+        FavoriteCity favoriteCity = new FavoriteCity(cityName, countryCode);
+        if (favoriteCities.add(favoriteCity)) {
+            saveFavorites();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove a city with a country code from favorites
+     *
+     * @param cityName Name of the city to remove
+     * @param countryCode Country code for the city
+     * @return true if removed successfully, false if not found
+     */
+    public boolean removeFavorite(String cityName, String countryCode) {
+        if (cityName == null || cityName.trim().isEmpty()) {
+            return false;
+        }
+
+        FavoriteCity favoriteCity = new FavoriteCity(cityName, countryCode);
+        if (favoriteCities.remove(favoriteCity)) {
+            saveFavorites();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if a city with a country code is in favorites
+     *
+     * @param cityName Name of the city to check
+     * @param countryCode Country code for the city
+     * @return true if the city is a favorite
+     */
+    public boolean isFavorite(String cityName, String countryCode) {
+        if (cityName == null || cityName.trim().isEmpty()) {
+            return false;
+        }
+        return favoriteCities.contains(new FavoriteCity(cityName, countryCode));
     }
 
     /**
@@ -123,6 +154,19 @@ public class FavoritesService {
      * @return List of favorite city names
      */
     public List<String> getFavorites() {
+        List<String> favorites = new ArrayList<>();
+        for (FavoriteCity city : favoriteCities) {
+            favorites.add(city.getCityName());
+        }
+        return favorites;
+    }
+
+    /**
+     * Get all favorite city entries
+     *
+     * @return List of favorite cities with country codes
+     */
+    public List<FavoriteCity> getFavoriteEntries() {
         return new ArrayList<>(favoriteCities);
     }
 
