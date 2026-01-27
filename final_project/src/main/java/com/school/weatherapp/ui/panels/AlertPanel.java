@@ -134,10 +134,6 @@ public class AlertPanel extends VBox {
                 contextLabel.setText("Alerts for: " + safeCity() + " (none available)");
                 showNoAlerts();
             }
-            case SIMULATED -> {
-                contextLabel.setText("Alerts for: " + safeCity() + " (simulated fallback)");
-                showAlerts(alerts);
-            }
             case UNAVAILABLE -> {
                 contextLabel.setText("Alerts for: " + safeCity() + " (unavailable)");
                 showAlertsUnavailable(message);

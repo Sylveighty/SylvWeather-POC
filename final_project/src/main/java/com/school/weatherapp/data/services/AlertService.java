@@ -53,15 +53,9 @@ public class AlertService {
             }
             return new AlertFetchResult(AlertFetchStatus.NO_ALERTS, fromApi, "No active alerts returned.");
         } catch (AlertApiException e) {
-            if (AppConfig.ENABLE_SIMULATED_ALERTS) {
-                return new AlertFetchResult(AlertFetchStatus.SIMULATED, getSimulatedAlerts(), e.getMessage());
-            }
             return new AlertFetchResult(e.getStatus(), new ArrayList<>(), e.getMessage());
         } catch (Exception e) {
             String message = "Alert request failed: " + e.getMessage();
-            if (AppConfig.ENABLE_SIMULATED_ALERTS) {
-                return new AlertFetchResult(AlertFetchStatus.SIMULATED, getSimulatedAlerts(), message);
-            }
             return new AlertFetchResult(AlertFetchStatus.FAILED, new ArrayList<>(), message);
         }
     }
@@ -163,7 +157,7 @@ public class AlertService {
 
     /**
      * Expected JSON: { "alerts": [ ... ] }
-     * If "alerts" is missing, returns an empty list (caller may fall back to simulated alerts).
+     * If "alerts" is missing, returns an empty list.
      */
     private List<Alert> parseAlertsResponse(String jsonResponse) {
         List<Alert> alerts = new ArrayList<>();
@@ -214,32 +208,11 @@ public class AlertService {
         return alert;
     }
 
-    /**
-     * Simulated alerts for demo/testing when live alerts are unavailable.
-     */
-    private List<Alert> getSimulatedAlerts() {
-        List<Alert> alerts = new ArrayList<>();
-
-        Alert alert1 = new Alert();
-        alert1.setId("alert-001");
-        alert1.setTitle("Moderate Wind Advisory");
-        alert1.setDescription("Winds 25-35 mph expected through tonight. Secure outdoor objects.");
-        alert1.setSeverity("medium");
-        long now = System.currentTimeMillis() / 1000;
-        alert1.setTimestamp(now);
-        alert1.setEffectiveStart(now);
-        alert1.setEffectiveEnd(now + (6 * 60 * 60));
-        alerts.add(alert1);
-
-        return alerts;
-    }
-
     public enum AlertFetchStatus {
         LIVE,
         NO_ALERTS,
         UNAVAILABLE,
-        FAILED,
-        SIMULATED
+        FAILED
     }
 
     public static final class AlertFetchResult {
