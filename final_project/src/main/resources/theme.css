@@ -43,6 +43,32 @@
     -fx-padding: 12;
 }
 
+/* Favorites grouping */
+.favorites-group-container {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.favorites-group-pane > .title {
+    -fx-background-color: #fafafa;
+    -fx-background-radius: 10;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 6 12;
+    -fx-font-weight: bold;
+}
+
+.favorites-group-pane > .content {
+    -fx-background-color: transparent;
+    -fx-padding: 6 0 0 0;
+}
+
+.favorites-group-list {
+    -fx-padding: 2 0 6 0;
+    -fx-spacing: 6;
+}
+
 /* Typography */
 .title-text {
     -fx-font-size: 18;
