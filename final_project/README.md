@@ -4,7 +4,7 @@
 
 Weathering with You is a Java 17+ / JavaFX desktop weather dashboard built as a proof-of-concept (POC). It demonstrates the JavaFX application lifecycle, modular UI composition, and integration with the OpenWeather REST API.
 
-This project prioritizes clarity and learning value over production concerns such as caching, rate limiting, or exhaustive error handling. It is intended for academic evaluation, technical presentations, and early-career portfolio review.
+This project prioritizes clarity and learning value over production concerns such as rate limiting or exhaustive error handling. It is intended for academic evaluation, technical presentations, and early-career portfolio review.
 
 ### UI Preview
 
@@ -26,7 +26,7 @@ Planned image locations:
 - Favorites management with local persistence (favorites.txt)
 - Light and dark theme toggle using JavaFX CSS
 - Temperature unit toggle (Celsius / Fahrenheit)
-- Alerts panel with simulated fallback when live alerts are unavailable
+- Alerts panel for available weather alerts
 
 ## Architecture
 
@@ -109,7 +109,7 @@ gradlew.bat run
 5. Add a city to Favorites and confirm it appears in the list.
 6. Select a favorite city to reload weather.
 7. Review hourly and daily forecast panels.
-8. Confirm alerts panel shows live or simulated alerts based on availability.
+8. Review the alerts panel for any available weather alerts.
 
 ### Favorites persistence
 
@@ -129,17 +129,13 @@ Endpoints used:
 - /data/2.5/weather
 - /data/2.5/forecast
 
-Alerts may be simulated depending on API availability.
-
 API keys are read from the environment variable OPENWEATHER_API_KEY and must not be committed to version control.
 
 ## Limitations
 
 - Proof-of-concept only
 - Limited automated testing
-- No caching or offline support
 - Minimal API resilience
-- Simulated alerts may be shown
 
 ## Future Improvements
 

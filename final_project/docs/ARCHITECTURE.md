@@ -33,7 +33,6 @@ SylvWeather-POC is a JavaFX desktop proof-of-concept (POC) organized around clea
   - Produces hourly subset and daily summaries by grouping entries by day
 - **`AlertService`**
   - Attempts geocoding lookup and an alerts request
-  - Provides simulated fallback alerts if API retrieval fails (demo-friendly behavior)
 
 ### `com.school.weatherapp.features`
 - **`FavoritesService`**
@@ -81,7 +80,6 @@ Typical flow when a user searches/selects a city:
 
 5. Alerts behavior:
    - `AlertService` attempts an API-based alert retrieval path
-   - If unavailable or failing, returns a small simulated alert list for demonstration
 
 ## JavaFX Lifecycle Responsibilities
 
@@ -100,6 +98,6 @@ This architecture intentionally avoids production patterns such as:
 - dependency injection frameworks
 - persistent databases
 - background schedulers
-- caching layers and robust retry policies
+- robust retry policies
 
 The goal is a clear, teachable example of JavaFX + REST API integration.
