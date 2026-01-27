@@ -40,9 +40,6 @@ public class Forecast {
     private double rainAmount;        // mm.
     private double snowAmount;        // mm.
 
-    // ==================== Cache State ====================
-    private boolean cached;
-    
     // ==================== Constructors ====================
     
     /**
@@ -181,14 +178,6 @@ public class Forecast {
         this.snowAmount = snowAmount;
     }
 
-    public boolean isCached() {
-        return cached;
-    }
-
-    public void setCached(boolean cached) {
-        this.cached = cached;
-    }
-    
     // ==================== Utility Methods ====================
     
     @Override
