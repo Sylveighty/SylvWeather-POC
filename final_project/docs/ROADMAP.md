@@ -26,7 +26,6 @@ This roadmap outlines potential improvements for SylvWeather-POC while keeping t
 
 - Cross-platform packaging (e.g., `jpackage`)
 - More robust alert support using an officially supported alerts feed (depending on OpenWeather plan/endpoints)
-- Offline-friendly behavior using cached last-known results
 - Accessibility improvements (keyboard navigation, contrast checks)
 
 ## Scope Reminder
