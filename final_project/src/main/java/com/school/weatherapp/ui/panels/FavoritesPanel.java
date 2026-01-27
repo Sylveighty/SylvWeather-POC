@@ -5,18 +5,23 @@ import com.school.weatherapp.features.FavoritesService;
 import com.school.weatherapp.util.ThemeUtil;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 
 /**
@@ -99,7 +104,6 @@ public class FavoritesPanel extends VBox {
         favoritesList.getChildren().clear();
 
         List<FavoriteCity> favorites = favoritesService.getFavoriteEntries();
-        favorites.sort(buildFavoritesComparator());
         if (favorites.isEmpty()) {
             showEmptyState();
         } else {
@@ -152,9 +156,33 @@ public class FavoritesPanel extends VBox {
     }
 
     private void showFavorites(List<FavoriteCity> favorites) {
+        Accordion accordion = new Accordion();
+        accordion.getStyleClass().add("favorites-group-container");
+
+        Map<String, List<FavoriteCity>> groupedFavorites = new TreeMap<>(buildCountryCodeComparator());
         for (FavoriteCity city : favorites) {
-            favoritesList.getChildren().add(createCityItem(city));
+            String countryCode = normalizeCountryCode(city.getCountryCode());
+            groupedFavorites.computeIfAbsent(countryCode, key -> new ArrayList<>()).add(city);
         }
+
+        for (Map.Entry<String, List<FavoriteCity>> entry : groupedFavorites.entrySet()) {
+            List<FavoriteCity> cities = entry.getValue();
+            cities.sort(buildCityComparator());
+
+            VBox groupList = new VBox(6);
+            groupList.getStyleClass().add("favorites-group-list");
+            for (FavoriteCity city : cities) {
+                groupList.getChildren().add(createCityItem(city));
+            }
+
+            TitledPane groupPane = new TitledPane(entry.getKey(), groupList);
+            groupPane.getStyleClass().add("favorites-group-pane");
+            groupPane.setExpanded(true);
+
+            accordion.getPanes().add(groupPane);
+        }
+
+        favoritesList.getChildren().add(accordion);
     }
 
     private HBox createCityItem(FavoriteCity favoriteCity) {
@@ -211,11 +239,24 @@ public class FavoritesPanel extends VBox {
         });
     }
 
-    private Comparator<FavoriteCity> buildFavoritesComparator() {
+    private Comparator<String> buildCountryCodeComparator() {
         return Comparator
-            .comparing((FavoriteCity favorite) ->
-                favorite.getCountryCode() == null || favorite.getCountryCode().isBlank())
-            .thenComparing(FavoriteCity::getCountryCode, String.CASE_INSENSITIVE_ORDER)
-            .thenComparing(FavoriteCity::getCityName, String.CASE_INSENSITIVE_ORDER);
+            .comparing(this::isUnknownCountryCode)
+            .thenComparing(String.CASE_INSENSITIVE_ORDER);
+    }
+
+    private Comparator<FavoriteCity> buildCityComparator() {
+        return Comparator.comparing(FavoriteCity::getCityName, String.CASE_INSENSITIVE_ORDER);
+    }
+
+    private String normalizeCountryCode(String countryCode) {
+        if (countryCode == null || countryCode.isBlank()) {
+            return "Unknown";
+        }
+        return countryCode.trim().toUpperCase();
+    }
+
+    private boolean isUnknownCountryCode(String countryCode) {
+        return countryCode == null || countryCode.isBlank() || "Unknown".equalsIgnoreCase(countryCode);
     }
 }
