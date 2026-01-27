@@ -9,8 +9,9 @@ import com.school.weatherapp.ui.panels.DailyForecastPanel;
 import com.school.weatherapp.ui.panels.FavoritesPanel;
 import com.school.weatherapp.ui.panels.HighlightsPanel;
 import com.school.weatherapp.ui.panels.HourlyForecastPanel;
-import javafx.application.Application;
+
 import javafx.animation.PauseTransition;
+import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -21,8 +22,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  * MainApp - JavaFX entry point for Weathering with You.
@@ -198,7 +199,7 @@ public class MainApp extends Application {
     private void initializePanels() {
         favoritesService = new FavoritesService();
         currentWeatherPanel = new CurrentWeatherPanel(favoritesService);
-        favoritesPanel = new FavoritesPanel(favoritesService);
+        favoritesPanel = new FavoritesPanel(favoritesService, preferencesService);
         highlightsPanel = new HighlightsPanel();
         hourlyForecastPanel = new HourlyForecastPanel();
         dailyForecastPanel = new DailyForecastPanel();
@@ -245,7 +246,8 @@ public class MainApp extends Application {
             favoritesPanel.refreshFavorites();
         });
 
-        favoritesPanel.setOnCitySelect(cityName -> currentWeatherPanel.loadCityWeather(cityName));
+        favoritesPanel.setOnCitySelectCallback(cityName -> currentWeatherPanel.loadCityWeather(cityName));
+
     }
 
     private void loadInitialData() {

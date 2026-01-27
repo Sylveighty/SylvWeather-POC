@@ -443,7 +443,7 @@ public class CurrentWeatherPanel extends VBox {
     }
 
     private void updateRecentSearches(String cityName) {
-        preferencesService.addRecentSearch(cityName);
+        //preferencesService.addRecentSearch(cityName);
         refreshRecentSearches();
     }
 
