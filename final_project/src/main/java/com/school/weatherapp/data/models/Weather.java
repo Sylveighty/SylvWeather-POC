@@ -52,9 +52,6 @@ public class Weather {
     private double precipitation;    // mm.
     private long timestamp;          // Unix timestamp.
 
-    // ==================== Cache State ====================
-    private boolean cached;
-    
     // ==================== Constructors ====================
     
     /**
@@ -252,14 +249,6 @@ public class Weather {
         this.timestamp = timestamp;
     }
 
-    public boolean isCached() {
-        return cached;
-    }
-
-    public void setCached(boolean cached) {
-        this.cached = cached;
-    }
-    
     // ==================== Utility Methods ====================
     
     /**

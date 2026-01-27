@@ -68,7 +68,6 @@ public class CurrentWeatherPanel extends VBox {
     private Label sunriseLabel;
 
     private Label lastUpdatedLabel;
-    private Label cachedDataLabel;
     private ProgressIndicator loadingIndicator;
 
     private GridPane detailsGrid;
@@ -273,18 +272,12 @@ public class CurrentWeatherPanel extends VBox {
     }
 
     private void buildFooter() {
-        cachedDataLabel = new Label("Offline • Showing cached data");
-        cachedDataLabel.getStyleClass().add("cache-banner");
-        cachedDataLabel.setVisible(false);
-        cachedDataLabel.setAlignment(Pos.CENTER);
-        cachedDataLabel.setMaxWidth(Double.MAX_VALUE);
-
         lastUpdatedLabel = new Label("Last updated: --");
         lastUpdatedLabel.getStyleClass().add("footer-label");
         lastUpdatedLabel.setAlignment(Pos.CENTER);
         lastUpdatedLabel.setMaxWidth(Double.MAX_VALUE);
 
-        VBox footerBox = new VBox(4, cachedDataLabel, lastUpdatedLabel);
+        VBox footerBox = new VBox(4, lastUpdatedLabel);
         footerBox.setAlignment(Pos.CENTER);
         footerBox.setFillWidth(true);
 
@@ -364,7 +357,6 @@ public class CurrentWeatherPanel extends VBox {
             searchButton.setDisable(true);
             searchField.setDisable(true);
             favoriteButton.setDisable(true);
-            cachedDataLabel.setVisible(false);
             clearError();
         });
 
@@ -429,7 +421,6 @@ public class CurrentWeatherPanel extends VBox {
         // Timestamp.
         String timestamp = DateTimeUtil.formatDateTime(weather.getTimestamp());
         lastUpdatedLabel.setText("Last updated: " + timestamp);
-        updateCacheBanner(weather);
         updateRecentSearches(weather.getCityName());
 
         // Favorites button.
@@ -444,7 +435,6 @@ public class CurrentWeatherPanel extends VBox {
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
-        cachedDataLabel.setVisible(false);
     }
 
     private void clearError() {
@@ -475,13 +465,6 @@ public class CurrentWeatherPanel extends VBox {
             chip.setOnAction(event -> loadWeather(city));
             recentSearchesFlow.getChildren().add(chip);
         }
-    }
-
-    private void updateCacheBanner(Weather weather) {
-        if (cachedDataLabel == null) {
-            return;
-        }
-        cachedDataLabel.setVisible(weather != null && weather.isCached());
     }
 
     private String resolveTempUnit(Weather weather) {
@@ -594,6 +577,5 @@ public class CurrentWeatherPanel extends VBox {
             windUnit,
             weather.getWindDirectionCompass()
         ));
-        updateCacheBanner(weather);
     }
 }

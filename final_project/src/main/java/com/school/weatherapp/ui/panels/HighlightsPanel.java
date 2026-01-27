@@ -36,7 +36,6 @@ public class HighlightsPanel extends VBox {
     private ProgressIndicator loadingIndicator;
     private Weather currentWeather;
     private boolean isImperial;
-    private Label cacheNoticeLabel;
 
     public HighlightsPanel() {
         this.weatherService = new WeatherService();
@@ -65,11 +64,7 @@ public class HighlightsPanel extends VBox {
         Label title = new Label("Today's Highlights");
         title.getStyleClass().add("section-title");
 
-        cacheNoticeLabel = new Label("Offline • Showing cached data");
-        cacheNoticeLabel.getStyleClass().add("cache-banner");
-        cacheNoticeLabel.setVisible(false);
-
-        VBox header = new VBox(3, title, cacheNoticeLabel);
+        VBox header = new VBox(3, title);
         getChildren().add(header);
     }
 
@@ -140,10 +135,8 @@ public class HighlightsPanel extends VBox {
                 if (weather != null) {
                     currentWeather = weather;
                     updateDisplayWithUnit(weather, isImperial);
-                    updateCacheNotice(weather);
                 } else {
                     setValuePlaceholders("--");
-                    updateCacheNotice(null);
                 }
             }));
     }
@@ -212,18 +205,10 @@ public class HighlightsPanel extends VBox {
         }
     }
 
-    private void updateCacheNotice(Weather weather) {
-        if (cacheNoticeLabel == null) {
-            return;
-        }
-        cacheNoticeLabel.setVisible(weather != null && weather.isCached());
-    }
-
     private void showLoadingState(boolean isLoading) {
         loadingIndicator.setVisible(isLoading);
         if (isLoading) {
             setValuePlaceholders("Loading...");
-            updateCacheNotice(null);
         }
     }
 
