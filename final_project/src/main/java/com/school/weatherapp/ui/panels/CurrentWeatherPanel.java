@@ -320,12 +320,13 @@ public class CurrentWeatherPanel extends VBox {
         if (currentWeather == null) return;
 
         String cityName = currentWeather.getCityName();
-        boolean isFavorite = favoritesService.isFavorite(cityName);
+        String countryCode = currentWeather.getCountry();
+        boolean isFavorite = favoritesService.isFavorite(cityName, countryCode);
 
         if (isFavorite) {
-            favoritesService.removeFavorite(cityName);
+            favoritesService.removeFavorite(cityName, countryCode);
         } else {
-            favoritesService.addFavorite(cityName);
+            favoritesService.addFavorite(cityName, countryCode);
         }
 
         // Update button UI.
@@ -350,9 +351,9 @@ public class CurrentWeatherPanel extends VBox {
         }
     }
 
-    private void updateFavoriteButtonState(String cityName) {
+    private void updateFavoriteButtonState(String cityName, String countryCode) {
         if (cityName == null) return;
-        setFavoriteButtonState(favoritesService.isFavorite(cityName));
+        setFavoriteButtonState(favoritesService.isFavorite(cityName, countryCode));
     }
 
     // -------------------- Weather Loading and Display --------------------
@@ -432,7 +433,7 @@ public class CurrentWeatherPanel extends VBox {
         updateRecentSearches(weather.getCityName());
 
         // Favorites button.
-        updateFavoriteButtonState(weather.getCityName());
+        updateFavoriteButtonState(weather.getCityName(), weather.getCountry());
 
         // Notify city change.
         if (onCityChangeCallback != null) {

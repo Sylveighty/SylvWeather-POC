@@ -1,5 +1,6 @@
 package com.school.weatherapp.ui.panels;
 
+import com.school.weatherapp.features.FavoriteCity;
 import com.school.weatherapp.features.FavoritesService;
 import com.school.weatherapp.util.ThemeUtil;
 import javafx.geometry.Insets;
@@ -14,6 +15,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -96,7 +98,8 @@ public class FavoritesPanel extends VBox {
     public void refreshFavorites() {
         favoritesList.getChildren().clear();
 
-        List<String> favorites = favoritesService.getFavorites();
+        List<FavoriteCity> favorites = favoritesService.getFavoriteEntries();
+        favorites.sort(buildFavoritesComparator());
         if (favorites.isEmpty()) {
             showEmptyState();
         } else {
@@ -148,20 +151,20 @@ public class FavoritesPanel extends VBox {
         favoritesList.getChildren().add(emptyState);
     }
 
-    private void showFavorites(List<String> favorites) {
-        for (String city : favorites) {
+    private void showFavorites(List<FavoriteCity> favorites) {
+        for (FavoriteCity city : favorites) {
             favoritesList.getChildren().add(createCityItem(city));
         }
     }
 
-    private HBox createCityItem(String cityName) {
+    private HBox createCityItem(FavoriteCity favoriteCity) {
         HBox itemBox = new HBox(8);
         itemBox.setAlignment(Pos.CENTER_LEFT);
 
         // Reuse a generic card style from CSS.
         itemBox.getStyleClass().add("forecast-card");
 
-        Label cityLabel = new Label(cityName);
+        Label cityLabel = new Label(favoriteCity.toDisplayString());
         cityLabel.getStyleClass().add("label-primary");
         cityLabel.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(cityLabel, Priority.ALWAYS);
@@ -169,7 +172,7 @@ public class FavoritesPanel extends VBox {
         Button viewButton = new Button("View");
         // Uses default .button styling from CSS.
 
-        viewButton.setOnAction(e -> handleCitySelect(cityName));
+        viewButton.setOnAction(e -> handleCitySelect(favoriteCity));
 
         Button removeButton = new Button("✕");
         // Make it clearly destructive using existing CSS class.
@@ -177,7 +180,7 @@ public class FavoritesPanel extends VBox {
         removeButton.setMinWidth(32);
         removeButton.setPrefWidth(32);
 
-        removeButton.setOnAction(e -> handleCityRemove(cityName));
+        removeButton.setOnAction(e -> handleCityRemove(favoriteCity));
 
         itemBox.getChildren().addAll(cityLabel, viewButton, removeButton);
         return itemBox;
@@ -185,26 +188,34 @@ public class FavoritesPanel extends VBox {
 
     // -------------------- Actions --------------------
 
-    private void handleCitySelect(String cityName) {
+    private void handleCitySelect(FavoriteCity favoriteCity) {
         if (onCitySelectCallback != null) {
-            onCitySelectCallback.accept(cityName);
+            onCitySelectCallback.accept(favoriteCity.toSearchQuery());
         }
     }
 
-    private void handleCityRemove(String cityName) {
+    private void handleCityRemove(FavoriteCity favoriteCity) {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Remove Favorite");
-        confirmDialog.setHeaderText("Remove " + cityName + " from favorites?");
+        confirmDialog.setHeaderText("Remove " + favoriteCity.toDisplayString() + " from favorites?");
         confirmDialog.setContentText("This action cannot be undone.");
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                favoritesService.removeFavorite(cityName);
+                favoritesService.removeFavorite(favoriteCity.getCityName(), favoriteCity.getCountryCode());
                 refreshFavorites();
                 if (onFavoritesChangeCallback != null) {
                     onFavoritesChangeCallback.run();
                 }
             }
         });
+    }
+
+    private Comparator<FavoriteCity> buildFavoritesComparator() {
+        return Comparator
+            .comparing((FavoriteCity favorite) ->
+                favorite.getCountryCode() == null || favorite.getCountryCode().isBlank())
+            .thenComparing(FavoriteCity::getCountryCode, String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(FavoriteCity::getCityName, String.CASE_INSENSITIVE_ORDER);
     }
 }
