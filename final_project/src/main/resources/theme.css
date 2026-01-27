@@ -1,0 +1,339 @@
+/* theme.css - Light Theme */
+
+/* Root styling */
+.root {
+    -fx-font-family: "System";
+    -fx-font-size: 12;
+    -fx-background-color: #e8eaf6;
+    -fx-base: #f5f5f5;
+}
+
+/* Main container */
+.main-container {
+    -fx-background-color: #e8eaf6;
+}
+
+/* Top bar */
+.top-bar {
+    -fx-background-color: transparent;
+}
+
+.toast-banner {
+    -fx-background-color: rgba(25, 118, 210, 0.12);
+    -fx-text-fill: #1565c0;
+    -fx-padding: 6 12;
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(25, 118, 210, 0.4);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+}
+
+/* Panel backgrounds */
+.panel-background {
+    -fx-background-color: #f5f5f5;
+    -fx-background-radius: 10;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.panel-content {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+}
+
+/* Typography */
+.title-text {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.section-title {
+    -fx-font-size: 15;
+    -fx-font-weight: bold;
+    -fx-text-fill: #555;
+}
+
+.label-primary {
+    -fx-font-size: 12;
+    -fx-text-fill: #333;
+}
+
+.label-secondary {
+    -fx-font-size: 11;
+    -fx-text-fill: #666;
+}
+
+.label-subtle {
+    -fx-font-size: 10;
+    -fx-text-fill: #999;
+}
+
+/* Weather panel specific */
+.city-label {
+    -fx-font-size: 22;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.temperature-large {
+    -fx-font-size: 52;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.condition-label {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666;
+}
+
+.description-label {
+    -fx-font-size: 12;
+    -fx-text-fill: #888;
+}
+
+.footer-label {
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666;
+}
+
+.detail-title {
+    -fx-font-size: 10;
+    -fx-text-fill: #999;
+}
+
+.detail-value {
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.weather-icon {
+    -fx-font-size: 48px;
+    -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Temperature coloring */
+.temp-hot {
+    -fx-text-fill: #d32f2f;
+    -fx-font-weight: bold;
+}
+
+.temp-cold {
+    -fx-text-fill: #1976d2;
+    -fx-font-weight: bold;
+}
+
+.temp-neutral {
+    -fx-text-fill: #f57c00;
+    -fx-font-weight: bold;
+}
+
+/* Button styling */
+.button {
+    -fx-padding: 6 12 6 12;
+    -fx-font-size: 12;
+    -fx-background-color: #1976d2;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #1565c0;
+    -fx-effect: dropshadow(gaussian, rgba(21, 101, 192, 0.25), 10, 0, 0, 2);
+}
+
+.button:pressed {
+    -fx-background-color: #0d47a1;
+}
+
+/* Small pill buttons (top-right toggles) */
+.pill-button {
+    -fx-font-size: 11;
+    -fx-padding: 6 12;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+}
+
+/* Favorites button variants */
+.favorite-add {
+    -fx-background-color: #FF9800;
+}
+
+.favorite-remove {
+    -fx-background-color: #F44336;
+}
+
+/* Search button */
+.search-button {
+    -fx-background-color: #4CAF50;
+}
+
+/* Text field styling */
+.text-field {
+    -fx-padding: 7;
+    -fx-border-radius: 8;
+    -fx-border-color: #9aa0a6;
+    -fx-border-width: 1;
+    -fx-background-color: #f9f9f9;
+    -fx-prompt-text-fill: #6b6b6b;
+    -fx-font-size: 12;
+}
+
+.text-field:focused {
+    -fx-border-color: #1976d2;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(25, 118, 210, 0.3), 6, 0, 0, 0);
+}
+
+.search-area {
+    -fx-background-color: transparent;
+}
+
+.input-error {
+    -fx-text-fill: #d32f2f;
+    -fx-font-size: 10;
+}
+
+.recent-searches-box {
+    -fx-padding: 4 0 0 0;
+}
+
+.recent-searches {
+    -fx-padding: 4 0 0 0;
+}
+
+.search-chip {
+    -fx-background-color: #e3f2fd;
+    -fx-text-fill: #1565c0;
+    -fx-font-size: 10;
+    -fx-padding: 4 10;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+}
+
+.search-chip:hover {
+    -fx-background-color: #bbdefb;
+}
+
+.cache-banner {
+    -fx-background-color: rgba(255, 152, 0, 0.15);
+    -fx-text-fill: #ef6c00;
+    -fx-padding: 4 10;
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255, 152, 0, 0.4);
+    -fx-border-radius: 12;
+    -fx-font-size: 10;
+}
+
+.saved-locations-box {
+    -fx-padding: 0 8 0 0;
+}
+
+.saved-locations-combo {
+    -fx-background-radius: 16;
+    -fx-font-size: 12;
+}
+
+.saved-location-button {
+    -fx-background-color: #4caf50;
+    -fx-text-fill: white;
+    -fx-background-radius: 14;
+    -fx-padding: 4 12;
+    -fx-font-size: 11;
+}
+
+.saved-location-button:hover {
+    -fx-background-color: #43a047;
+}
+
+/* Progress indicator */
+.progress-indicator {
+    -fx-progress-color: #1976d2;
+}
+
+/* Forecast cards */
+.forecast-card {
+    -fx-background-color: #fafafa;
+    -fx-background-radius: 10;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-padding: 10;
+}
+
+.forecast-card:hover {
+    -fx-background-color: #f0f3ff;
+    -fx-effect: dropshadow(gaussian, rgba(25, 118, 210, 0.12), 12, 0, 0, 2);
+}
+
+/* Highlight cards */
+.highlight-card {
+    -fx-background-color: #fafafa;
+    -fx-background-radius: 12;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+}
+
+.highlight-title {
+    -fx-font-size: 10;
+    -fx-text-fill: #888;
+}
+
+.highlight-value {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+/* Scroll pane */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+}
+
+.scroll-pane .viewport,
+.scroll-pane .content {
+    -fx-background-color: white;
+}
+
+.scroll-bar {
+    -fx-background-color: #f5f5f5;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button,
+.scroll-bar:horizontal .increment-button,
+.scroll-bar:horizontal .decrement-button {
+    -fx-padding: 0;
+}
+
+/* Alert styling */
+.alert-high {
+    -fx-background-color: #ffebee;
+    -fx-border-color: #d32f2f;
+    -fx-text-fill: #b71c1c;
+}
+
+.alert-medium {
+    -fx-background-color: #fff3e0;
+    -fx-border-color: #f57c00;
+    -fx-text-fill: #e65100;
+}
+
+.alert-low {
+    -fx-background-color: #e3f2fd;
+    -fx-border-color: #1976d2;
+    -fx-text-fill: #0d47a1;
+}
+
+/* Loading state */
+.loading {
+    -fx-opacity: 0.6;
+}

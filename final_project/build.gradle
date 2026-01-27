@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
+}
+
+group = 'com.school'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // JSON processing for API responses
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // HTTP client for API calls (Java 11+ built-in, but adding for clarity)
+    // Uses java.net.http.HttpClient (no additional dependency needed)
+    
+    // Testing dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+javafx {
+    version = '21'
+    modules = ['javafx.controls', 'javafx.graphics']
+}
+
+application {
+    mainClass = 'com.school.weatherapp.app.MainApp'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+// Custom task to run the application
+task runApp(type: JavaExec) {
+    group = 'application'
+    description = 'Run the Weather Application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.school.weatherapp.app.MainApp'
+}
